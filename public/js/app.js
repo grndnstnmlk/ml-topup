@@ -5,6 +5,9 @@
   const payButton = document.getElementById('pay-button');
   const payLabel = document.getElementById('pay-button-label');
   const errorText = document.getElementById('form-error');
+  const userIdInput = document.getElementById('game_user_id');
+  const zoneIdInput = document.getElementById('game_zone_id');
+  const idCheckBox = document.getElementById('id-check');
 
   let selectedProductId = null;
   let products = [];
@@ -17,6 +20,61 @@
     first_topup: { title: '🎁 First Top Up (Double Diamonds)', eyebrow: 'Bonus 2x — khusus top up pertama' },
     weekly_pass: { title: '🔥 Special Items', eyebrow: 'Weekly Diamond Pass' },
   };
+
+  function showIdCheck(state, text) {
+    idCheckBox.hidden = false;
+    idCheckBox.className = `id-check ${state}`;
+    idCheckBox.textContent = text;
+  }
+
+  function hideIdCheck() {
+    idCheckBox.hidden = true;
+    idCheckBox.textContent = '';
+  }
+
+  let checkIdTimer = null;
+
+  async function checkPlayerId() {
+    const userId = userIdInput.value.trim();
+    const zoneId = zoneIdInput.value.trim();
+
+    if (!userId || !zoneId) {
+      hideIdCheck();
+      return;
+    }
+
+    showIdCheck('checking', 'Mengecek nickname…');
+
+    try {
+      const res = await fetch('/api/check-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ game_user_id: userId, game_zone_id: zoneId }),
+      });
+      const data = await res.json();
+
+      if (data.valid && data.username) {
+        showIdCheck('found', `✓ Nickname: ${data.username}`);
+      } else if (data.unavailable) {
+        // Fitur cek nickname sedang tidak tersedia — jangan halangi user checkout.
+        hideIdCheck();
+      } else {
+        showIdCheck('not-found', '✕ ID tidak ditemukan. Periksa kembali User ID & Zone ID.');
+      }
+    } catch (err) {
+      hideIdCheck();
+    }
+  }
+
+  function scheduleCheckPlayerId() {
+    clearTimeout(checkIdTimer);
+    checkIdTimer = setTimeout(checkPlayerId, 700);
+  }
+
+  userIdInput.addEventListener('input', scheduleCheckPlayerId);
+  zoneIdInput.addEventListener('input', scheduleCheckPlayerId);
+  userIdInput.addEventListener('blur', checkPlayerId);
+  zoneIdInput.addEventListener('blur', checkPlayerId);
 
   function formatRupiah(n) {
     return 'Rp' + n.toLocaleString('id-ID');

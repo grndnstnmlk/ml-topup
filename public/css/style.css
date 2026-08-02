@@ -231,6 +231,33 @@ a { color: inherit; text-decoration: none; }
   margin: -6px 0 16px;
 }
 
+.id-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin: -6px 0 16px;
+}
+
+.id-check.checking {
+  color: var(--text-muted);
+  background: var(--bg-void);
+}
+
+.id-check.found {
+  color: var(--success);
+  background: rgba(62, 224, 138, 0.1);
+  border: 1px solid rgba(62, 224, 138, 0.3);
+}
+
+.id-check.not-found {
+  color: var(--magenta);
+  background: rgba(255, 61, 120, 0.08);
+  border: 1px solid rgba(255, 61, 120, 0.25);
+}
+
 /* ---------- PRODUCT GRID (hex diamond cards) ---------- */
 .product-grid {
   margin-bottom: 20px;

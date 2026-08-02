@@ -7,6 +7,7 @@ const db = require('./db');
 const productsRouter = require('./routes/products');
 const ordersRouter = require('./routes/orders');
 const webhookRouter = require('./routes/webhook');
+const checkIdRouter = require('./routes/check-id');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +26,7 @@ if (count === 0) {
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/webhook', webhookRouter);
+app.use('/api/check-id', checkIdRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
