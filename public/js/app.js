@@ -1,5 +1,6 @@
 (function () {
   const productGrid = document.getElementById('product-grid');
+  const orderSummary = document.getElementById('order-summary');
   const form = document.getElementById('order-form');
   const payButton = document.getElementById('pay-button');
   const payLabel = document.getElementById('pay-button-label');
@@ -96,7 +97,19 @@
     });
     const product = products.find((p) => p.id === id);
     payButton.disabled = false;
-    payLabel.textContent = `Bayar ${formatRupiah(product.price)}`;
+    payLabel.textContent = 'Pesan Sekarang';
+
+    const displayName = product.diamonds > 0
+      ? `${product.diamonds} Diamonds`
+      : product.name;
+
+    orderSummary.classList.add('has-item');
+    orderSummary.innerHTML = `
+      <div class="order-summary-item">
+        <span class="order-summary-item-name">${displayName}</span>
+        <span class="order-summary-item-price">${formatRupiah(product.price)}</span>
+      </div>
+    `;
   }
 
   async function loadProducts() {
