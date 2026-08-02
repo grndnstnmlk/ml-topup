@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cek Status Pesanan — DIAMOND.ID</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <a href="/" class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">DIAMOND<span class="brand-dot">.ID</span></span>
+    </a>
+  </div>
+</header>
+
+<div class="status-shell">
+  <form class="status-form" id="lookup-form">
+    <input type="text" id="order_id_input" placeholder="Masukkan Order ID, contoh: MLTOP-...">
+    <button type="submit">Cek</button>
+  </form>
+
+  <div class="status-card" id="status-card">
+    <p class="status-sub">Masukkan Order ID untuk melihat status pesananmu.</p>
+  </div>
+</div>
+
+<script>
+  const card = document.getElementById('status-card');
+  const form = document.getElementById('lookup-form');
+  const input = document.getElementById('order_id_input');
+
+  const statusLabel = { paid: 'Lunas — Diamond Terkirim', pending: 'Menunggu Pembayaran', failed: 'Gagal / Dibatalkan' };
+  const statusClass = { paid: 'paid', pending: 'pending', failed: 'failed' };
+
+  function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
+
+  async function lookup(orderId) {
+    card.innerHTML = '<p class="status-sub">Memuat…</p>';
+    try {
+      const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        card.innerHTML = `<h1>Tidak ditemukan</h1><p class="status-sub">Order ID "${orderId}" tidak ada di sistem kami.</p>`;
+        return;
+      }
+
+      const label = statusLabel[data.status] || data.status;
+      const cls = statusClass[data.status] || 'pending';
+
+      card.innerHTML = `
+        <span class="status-pill ${cls}">● ${label}</span>
+        <h1>${data.product_name}</h1>
+        <p class="status-sub">Order ID: ${data.order_id}</p>
+        <div class="status-row"><span>User ID / Zone</span><span>${data.game_user_id} / ${data.game_zone_id}</span></div>
+        <div class="status-row"><span>Total Bayar</span><span>${formatRupiah(data.price)}</span></div>
+        <div class="status-row"><span>Metode Pembayaran</span><span>${data.payment_type || '—'}</span></div>
+        <div class="status-row"><span>Dibuat</span><span>${new Date(data.created_at).toLocaleString('id-ID')}</span></div>
+      `;
+    } catch (err) {
+      card.innerHTML = '<p class="status-sub">Gagal memuat status. Coba lagi.</p>';
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (input.value.trim()) lookup(input.value.trim());
+  });
+
+  // Auto-lookup jika order_id ada di URL (redirect setelah bayar)
+  const params = new URLSearchParams(window.location.search);
+  const orderIdParam = params.get('order_id');
+  if (orderIdParam) {
+    input.value = orderIdParam;
+    lookup(orderIdParam);
+  }
+</script>
+
+</body>
+</html>

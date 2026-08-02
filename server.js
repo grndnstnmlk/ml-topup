@@ -1,0 +1,35 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+
+const db = require('./db');
+const productsRouter = require('./routes/products');
+const ordersRouter = require('./routes/orders');
+const webhookRouter = require('./routes/webhook');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Auto-seed produk jika tabel masih kosong (memudahkan first run)
+const count = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
+if (count === 0) {
+  console.log('Database kosong, menjalankan seed produk otomatis...');
+  require('./db-seed');
+}
+
+app.use('/api/products', productsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/webhook', webhookRouter);
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/health', (req, res) => res.json({ ok: true }));
+
+app.listen(PORT, () => {
+  console.log(`Server jalan di http://localhost:${PORT}`);
+});

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DIAMOND.ID — Top Up Mobile Legends Instan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="brand">
+      <span class="brand-mark">◆</span>
+      <span class="brand-name">DIAMOND<span class="brand-dot">.ID</span></span>
+    </div>
+    <nav class="topbar-links">
+      <a href="#produk">Paket</a>
+      <a href="#cara">Cara Top Up</a>
+      <a href="/status.html">Cek Pesanan</a>
+      <a href="/terms.html">S&K</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">TOP UP MOBILE LEGENDS: BANG BANG</p>
+        <h1>Isi ulang diamond,<br>bukan cari-cari.</h1>
+        <p class="hero-sub">
+          Masukkan ID &amp; server, pilih jumlah diamond, bayar — selesai.
+          Proses otomatis 24 jam, tanpa perlu login akun.
+        </p>
+      </div>
+
+      <form class="order-panel" id="order-form">
+        <div class="order-panel-head">
+          <span class="order-step">01</span>
+          <span>Data Akun</span>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="game_user_id">User ID</label>
+            <input type="text" id="game_user_id" inputmode="numeric" placeholder="123456789" required>
+          </div>
+          <div class="field field-small">
+            <label for="game_zone_id">Zone ID</label>
+            <input type="text" id="game_zone_id" inputmode="numeric" placeholder="1234" required>
+          </div>
+        </div>
+
+        <p class="hint">ID dan Zone ID ada di halaman profil, di bawah nama akunmu di dalam game.</p>
+
+        <div class="field">
+          <label for="contact">Email / No. WhatsApp <span class="optional">(untuk notifikasi)</span></label>
+          <input type="text" id="contact" placeholder="nama@email.com atau 08xxxxxxxxxx">
+        </div>
+
+        <div class="order-panel-head order-panel-head-spaced">
+          <span class="order-step">02</span>
+          <span>Pilih Paket Diamond</span>
+        </div>
+
+        <div id="product-grid" class="product-grid" aria-live="polite">
+          <p class="loading-text">Memuat paket…</p>
+        </div>
+
+        <button type="submit" class="cta-pay" id="pay-button" disabled>
+          <span id="pay-button-label">Pilih paket dulu</span>
+        </button>
+        <p class="error-text" id="form-error" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- CARA TOP UP -->
+  <section class="how" id="cara">
+    <div class="wrap">
+      <p class="section-eyebrow">TIGA LANGKAH</p>
+      <h2>Cara top up</h2>
+      <div class="how-steps">
+        <div class="how-step">
+          <span class="how-num">01</span>
+          <h3>Masukkan ID</h3>
+          <p>Isi User ID dan Zone ID akun Mobile Legends kamu dengan benar.</p>
+        </div>
+        <div class="how-step">
+          <span class="how-num">02</span>
+          <h3>Pilih paket</h3>
+          <p>Tentukan jumlah diamond atau pass yang ingin dibeli.</p>
+        </div>
+        <div class="how-step">
+          <span class="how-num">03</span>
+          <h3>Bayar &amp; selesai</h3>
+          <p>Pilih metode pembayaran, bayar, diamond masuk otomatis ke akun.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="trust">
+    <div class="wrap trust-inner">
+      <div class="trust-item">
+        <span class="trust-num">24/7</span>
+        <span class="trust-label">Proses otomatis</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-num">100%</span>
+        <span class="trust-label">Harga resmi</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-num">&lt;5 mnt</span>
+        <span class="trust-label">Rata-rata pengiriman</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>DIAMOND.ID bukan situs resmi Moonton. Semua merek dagang milik pemiliknya masing-masing. · <a href="/terms.html" style="color:#5b6488;">Syarat &amp; Ketentuan</a></p>
+  </div>
+</footer>
+
+<!-- Midtrans Snap.js -->
+<script id="midtrans-script" type="text/javascript"
+  src="https://app.sandbox.midtrans.com/snap/snap.js"
+  data-client-key="SB-Mid-client-xxxxxxxxxxxxxxxxxxxx"></script>
+
+<script src="/js/app.js"></script>
+</body>
+</html>
