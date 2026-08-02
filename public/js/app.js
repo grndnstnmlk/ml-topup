@@ -8,12 +8,7 @@
   let selectedProductId = null;
   let products = [];
 
-  const diamondIcon = `
-    <svg class="product-diamond" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M4 9L12 3L20 9L12 21L4 9Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
-      <path d="M4 9H20M8.5 9L12 3L15.5 9M8.5 9L12 21M15.5 9L12 21" stroke="currentColor" stroke-width="1" opacity="0.5"/>
-    </svg>
-  `;
+  const diamondIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond">`;
 
   function formatRupiah(n) {
     return 'Rp' + n.toLocaleString('id-ID');
