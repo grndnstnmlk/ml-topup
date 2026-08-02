@@ -60,11 +60,6 @@
 
     let html = '';
 
-    // Kategori diamond reguler tampil tanpa judul (grid utama)
-    if (groups.diamond) {
-      html += `<div class="product-subgrid">${groups.diamond.map(renderCard).join('')}</div>`;
-    }
-
     ['first_topup', 'weekly_pass'].forEach((cat) => {
       if (!groups[cat] || !groups[cat].length) return;
       const meta = CATEGORY_META[cat];
@@ -76,6 +71,16 @@
         </div>
       `;
     });
+
+    // Katalog diamond reguler tampil terakhir, di bawah kategori khusus
+    if (groups.diamond) {
+      html += `
+        <div class="product-category">
+          <h3 class="product-category-title">💎 Pilihan Diamond</h3>
+          <div class="product-subgrid">${groups.diamond.map(renderCard).join('')}</div>
+        </div>
+      `;
+    }
 
     productGrid.innerHTML = html;
 

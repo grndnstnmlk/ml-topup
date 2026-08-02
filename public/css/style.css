@@ -246,6 +246,10 @@ a { color: inherit; text-decoration: none; }
   margin-top: 22px;
 }
 
+.product-category:first-child {
+  margin-top: 0;
+}
+
 .product-category-title {
   font-family: var(--font-display);
   font-weight: 600;
