@@ -1,7 +1,15 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
-const db = new Database(path.join(__dirname, 'data.sqlite'));
+// DB_PATH bisa diarahkan ke folder persistent volume (mis. Railway) lewat
+// environment variable. Kalau tidak diset, pakai folder project seperti biasa.
+const dbPath = process.env.DB_PATH || path.join(__dirname, 'data.sqlite');
+
+// Pastikan foldernya ada dulu sebelum SQLite mencoba buka filenya
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+
+const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 
 db.exec(`
