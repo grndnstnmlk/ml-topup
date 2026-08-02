@@ -12,8 +12,21 @@ CREATE TABLE IF NOT EXISTS products (
   bonus INTEGER DEFAULT 0,
   price INTEGER NOT NULL,
   is_popular INTEGER DEFAULT 0,
-  sort_order INTEGER DEFAULT 0
-);
+  sort_order INTEGER DEFAULT 0,
+  category TEXT DEFAULT 'diamond',
+  original_price INTEGER
+);`);
+
+// Migrasi ringan untuk database lama yang belum punya kolom baru
+const existingCols = db.prepare('PRAGMA table_info(products)').all().map((c) => c.name);
+if (!existingCols.includes('category')) {
+  db.exec("ALTER TABLE products ADD COLUMN category TEXT DEFAULT 'diamond'");
+}
+if (!existingCols.includes('original_price')) {
+  db.exec('ALTER TABLE products ADD COLUMN original_price INTEGER');
+}
+
+db.exec(`
 
 CREATE TABLE IF NOT EXISTS orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,

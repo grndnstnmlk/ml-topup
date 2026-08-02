@@ -9,9 +9,40 @@
   let products = [];
 
   const diamondIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond">`;
+  const passIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond product-diamond-pass">`;
+
+  const CATEGORY_META = {
+    diamond: { title: null },
+    first_topup: { title: '🎁 First Top Up (Double Diamonds)', eyebrow: 'Bonus 2x — khusus top up pertama' },
+    weekly_pass: { title: '🔥 Special Items', eyebrow: 'Weekly Diamond Pass' },
+  };
 
   function formatRupiah(n) {
     return 'Rp' + n.toLocaleString('id-ID');
+  }
+
+  function discountPct(p) {
+    if (!p.original_price || p.original_price <= p.price) return null;
+    return Math.round((1 - p.price / p.original_price) * 100);
+  }
+
+  function renderCard(p) {
+    const isPass = p.diamonds === 0;
+    const disc = discountPct(p);
+    const bonusLabel = p.bonus > 0
+      ? `${p.diamonds} (${p.diamonds - p.bonus}+${p.bonus}) Diamonds`
+      : (isPass ? p.name : `${p.diamonds} Diamonds`);
+
+    return `
+      <button type="button" class="product-card" data-id="${p.id}" style="color: var(--text-primary)">
+        ${p.is_popular ? '<span class="badge">POPULER</span>' : ''}
+        ${disc ? `<span class="badge badge-discount">DISC ${disc}%</span>` : ''}
+        ${isPass ? passIcon : diamondIcon}
+        <div class="product-name">${bonusLabel}</div>
+        ${disc ? `<div class="product-original-price">${formatRupiah(p.original_price)}</div>` : ''}
+        <div class="product-price">${formatRupiah(p.price)}</div>
+      </button>
+    `;
   }
 
   function renderProducts() {
@@ -20,20 +51,33 @@
       return;
     }
 
-    productGrid.innerHTML = products
-      .map((p) => {
-        const bonusLabel = p.bonus > 0 ? `+${p.bonus} bonus` : (p.diamonds === 0 ? 'Pass' : '&nbsp;');
-        return `
-        <button type="button" class="product-card" data-id="${p.id}" style="color: var(--text-primary)">
-          ${p.is_popular ? '<span class="badge">POPULER</span>' : ''}
-          ${diamondIcon}
-          <div class="product-name">${p.diamonds > 0 ? p.diamonds : p.name}</div>
-          <div class="product-bonus">${bonusLabel}</div>
-          <div class="product-price">${formatRupiah(p.price)}</div>
-        </button>
+    const groups = {};
+    products.forEach((p) => {
+      const cat = p.category || 'diamond';
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(p);
+    });
+
+    let html = '';
+
+    // Kategori diamond reguler tampil tanpa judul (grid utama)
+    if (groups.diamond) {
+      html += `<div class="product-subgrid">${groups.diamond.map(renderCard).join('')}</div>`;
+    }
+
+    ['first_topup', 'weekly_pass'].forEach((cat) => {
+      if (!groups[cat] || !groups[cat].length) return;
+      const meta = CATEGORY_META[cat];
+      html += `
+        <div class="product-category">
+          <h3 class="product-category-title">${meta.title}</h3>
+          ${meta.eyebrow ? `<p class="product-category-eyebrow">${meta.eyebrow}</p>` : ''}
+          <div class="product-subgrid">${groups[cat].map(renderCard).join('')}</div>
+        </div>
       `;
-      })
-      .join('');
+    });
+
+    productGrid.innerHTML = html;
 
     productGrid.querySelectorAll('.product-card').forEach((card) => {
       card.addEventListener('click', () => selectProduct(Number(card.dataset.id)));
