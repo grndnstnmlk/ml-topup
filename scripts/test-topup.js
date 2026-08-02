@@ -1,11 +1,18 @@
 // Script uji coba transaksi Digiflazz sesuai instruksi CS.
 // Cara pakai: node scripts/test-topup.js
+// Kredensial dibaca dari file .env (lihat .env.example untuk formatnya)
 
+require('dotenv').config();
 const crypto = require('crypto');
 
-// --- Kredensial dari CS Digiflazz ---
-const username = 'zorafog9O78D';
-const apiKey = 'dev-1874cf70-a288-11ee-86a9-dfeb320bba3c';
+// --- Kredensial dari CS Digiflazz (isi di file .env, JANGAN hardcode di sini) ---
+const username = process.env.DIGIFLAZZ_USERNAME;
+const apiKey = process.env.DIGIFLAZZ_DEV_KEY; // pakai Development Key selama status akun masih "Development Mode"
+
+if (!username || !apiKey) {
+  console.error('DIGIFLAZZ_USERNAME atau DIGIFLAZZ_DEV_KEY belum diisi di file .env');
+  process.exit(1);
+}
 
 // --- Data transaksi uji coba ---
 const customerNo = '087800001232'; // Nomor tujuan dari CS
