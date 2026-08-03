@@ -19,10 +19,14 @@ router.post('/', async (req, res) => {
   try {
     const { product_id, game_user_id, game_zone_id, contact } = req.body;
 
-    if (!product_id || !game_user_id) {
+    if (!product_id || !game_user_id || !contact) {
       return res.status(400).json({
-        error: 'product_id dan game_user_id wajib diisi',
+        error: 'product_id, game_user_id, dan email wajib diisi',
       });
+    }
+
+    if (!contact.includes('@')) {
+      return res.status(400).json({ error: 'Format email tidak valid' });
     }
 
     const product = db

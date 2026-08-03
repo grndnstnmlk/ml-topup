@@ -203,7 +203,7 @@ a { color: inherit; text-decoration: none; }
   margin-bottom: 6px;
 }
 
-.field label .optional { color: #5b6488; font-size: 0.78rem; }
+.field label .field-hint { color: #5b6488; font-size: 0.78rem; }
 
 .field input {
   width: 100%;

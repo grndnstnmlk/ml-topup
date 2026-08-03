@@ -291,6 +291,7 @@
     if (!selectedProductId) return showError('Pilih paket diamond terlebih dahulu.');
     if (!game_user_id) return showError(`${cfg.userLabel} wajib diisi.`);
     if (cfg.needsZone && !game_zone_id) return showError('Zone ID wajib diisi.');
+    if (!contact) return showError('Email wajib diisi.');
 
     payButton.disabled = true;
     const originalLabel = payLabel.textContent;
