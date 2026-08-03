@@ -25,9 +25,10 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 
 // Auto-seed produk kalau tabel masih kosong, ATAU kalau FORCE_RESEED=true diset
-// (dipakai sekali saat katalog produk di db-seed.js berubah tapi database production
-// sudah terisi data lama — set FORCE_RESEED=true sekali di hosting, deploy, lalu
-// hapus lagi variable-nya supaya tidak reseed terus tiap restart).
+// (dipakai kalau katalog produk di db-seed.js berubah — harga baru, SKU baru, dsb).
+// Seed sekarang bersifat UPSERT (update kalau SKU sudah ada, insert kalau baru),
+// TIDAK menghapus produk lama — jadi aman dijalankan berkali-kali walau sudah
+// ada order asli yang mereferensikan product_id lama.
 const count = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
 if (count === 0) {
   console.log('Database kosong, menjalankan seed produk otomatis...');

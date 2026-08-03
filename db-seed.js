@@ -59,26 +59,49 @@ const products = [
   { name: '5x Weekly Diamond Pass', diamonds: 0, bonus: 0, price: 139800, original_price: 162500, category: 'weekly_pass', sku: 'mlweek5' },
 ];
 
-const insert = db.prepare(`
+const insertStmt = db.prepare(`
   INSERT INTO products (name, diamonds, bonus, price, is_popular, sort_order, category, original_price, digiflazz_sku)
   VALUES (@name, @diamonds, @bonus, @price, @popular, @sort, @category, @original_price, @sku)
 `);
 
-const clear = db.prepare('DELETE FROM products');
-clear.run();
+const updateBySku = db.prepare(`
+  UPDATE products
+  SET name = @name, diamonds = @diamonds, bonus = @bonus, price = @price,
+      is_popular = @popular, sort_order = @sort, category = @category,
+      original_price = @original_price
+  WHERE digiflazz_sku = @sku
+`);
 
-products.forEach((p, i) => {
-  insert.run({
-    name: p.name,
-    diamonds: p.diamonds,
-    bonus: p.bonus || 0,
-    price: p.price,
-    popular: p.popular ? 1 : 0,
-    sort: i,
-    category: p.category || 'diamond',
-    original_price: p.original_price || null,
-    sku: p.sku || null,
+const findBySku = db.prepare('SELECT id FROM products WHERE digiflazz_sku = ?');
+
+// Upsert: update produk yang SKU-nya sudah ada, insert kalau belum ada.
+// SENGAJA TIDAK menghapus produk lama — kalau ada order yang sudah pernah
+// dibuat, product_id itu terikat foreign key dan menghapusnya akan gagal
+// (SQLITE_CONSTRAINT_FOREIGNKEY), atau kalaupun dipaksa, riwayat order lama
+// jadi rusak (product_id-nya jadi menunjuk ke baris yang sudah tidak ada).
+const seedAll = db.transaction((items) => {
+  items.forEach((p, i) => {
+    const payload = {
+      name: p.name,
+      diamonds: p.diamonds,
+      bonus: p.bonus || 0,
+      price: p.price,
+      popular: p.popular ? 1 : 0,
+      sort: i,
+      category: p.category || 'diamond',
+      original_price: p.original_price || null,
+      sku: p.sku || null,
+    };
+
+    const existing = p.sku ? findBySku.get(p.sku) : null;
+    if (existing) {
+      updateBySku.run(payload);
+    } else {
+      insertStmt.run(payload);
+    }
   });
 });
 
-console.log(`Seeded ${products.length} produk diamond ke database.`);
+seedAll(products);
+
+console.log(`Seed selesai: ${products.length} produk diperiksa (update/insert), tidak ada yang dihapus.`);
