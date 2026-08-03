@@ -33,6 +33,9 @@ if (!existingCols.includes('category')) {
 if (!existingCols.includes('original_price')) {
   db.exec('ALTER TABLE products ADD COLUMN original_price INTEGER');
 }
+if (!existingCols.includes('digiflazz_sku')) {
+  db.exec('ALTER TABLE products ADD COLUMN digiflazz_sku TEXT');
+}
 
 db.exec(`
 

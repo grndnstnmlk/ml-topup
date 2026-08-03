@@ -3,6 +3,7 @@ const router = express.Router();
 const midtransClient = require('midtrans-client');
 const db = require('../db');
 const { notifyCustomer } = require('../utils/notify');
+const { topupDiamond } = require('../utils/digiflazz');
 
 const core = new midtransClient.CoreApi({
   isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
@@ -47,7 +48,7 @@ router.post('/midtrans', async (req, res) => {
 
     const order = db
       .prepare(
-        `SELECT orders.*, products.name AS product_name
+        `SELECT orders.*, products.name AS product_name, products.digiflazz_sku
          FROM orders JOIN products ON products.id = orders.product_id
          WHERE order_id = ?`
       )
@@ -69,11 +70,41 @@ router.post('/midtrans', async (req, res) => {
       }
     }
 
-    if (status === 'paid') {
-      // TODO: Panggil API supplier diamond ML di sini (mis. Digiflazz / VIP Reseller)
-      // untuk mengirim diamond secara otomatis ke akun pemain.
-      // Lihat README.md bagian "Pengiriman Diamond Otomatis" untuk detail.
-      console.log(`Order ${orderId} LUNAS. Siap diproses pengiriman diamond.`);
+    if (status === 'paid' && order) {
+      if (!order.digiflazz_sku) {
+        console.warn(`[digiflazz] Order ${orderId}: produk belum punya digiflazz_sku, lewati pengiriman otomatis.`);
+      } else {
+        const customerNo = `${order.game_user_id}${order.game_zone_id}`;
+
+        const result = await topupDiamond({
+          sku: order.digiflazz_sku,
+          customerNo,
+          refId: orderId, // pakai order_id sebagai ref_id, biar gampang di-match webhook Digiflazz nanti
+        });
+
+        db.prepare(
+          `UPDATE orders SET delivery_status = ?, delivery_sn = ?, delivery_message = ?, updated_at = CURRENT_TIMESTAMP
+           WHERE order_id = ?`
+        ).run(result.status, result.sn || null, result.message || null, orderId);
+
+        console.log(`[digiflazz] Order ${orderId}: ${result.status} — ${result.message}`);
+
+        // Kalau langsung sukses/gagal (bukan pending/diproses), kabari pelanggan sekarang.
+        // Kalau masih 'diproses', biarkan webhook Digiflazz (/api/digiflazz-webhook) yang update nanti.
+        if (result.status === 'terkirim' && order.contact) {
+          await notifyCustomer(order.contact, {
+            subject: `Diamond Sudah Masuk — ${orderId}`,
+            message: `Diamond untuk Order ${orderId} sudah berhasil masuk ke akun ${order.game_user_id} (${order.game_zone_id}). Selamat bermain!`,
+            html: `<p>Diamond untuk Order <b>${orderId}</b> sudah berhasil masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Selamat bermain!</p>`,
+          });
+        } else if (result.status === 'gagal' && order.contact) {
+          await notifyCustomer(order.contact, {
+            subject: `Pengiriman Diamond Gagal — ${orderId}`,
+            message: `Pengiriman diamond untuk Order ${orderId} gagal diproses (${result.message}). Tim kami akan segera menindaklanjuti — dana kamu aman.`,
+            html: `<p>Pengiriman diamond untuk Order <b>${orderId}</b> gagal diproses (${result.message}).</p><p>Tim kami akan segera menindaklanjuti — dana kamu aman.</p>`,
+          });
+        }
+      }
     }
 
     res.status(200).send('OK');
