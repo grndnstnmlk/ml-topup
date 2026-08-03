@@ -47,10 +47,25 @@ CREATE TABLE IF NOT EXISTS orders (
   status TEXT DEFAULT 'pending',
   midtrans_transaction_id TEXT,
   payment_type TEXT,
+  delivery_status TEXT DEFAULT 'belum_diproses',
+  delivery_sn TEXT,
+  delivery_message TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (product_id) REFERENCES products(id)
 );
 `);
+
+// Migrasi ringan untuk kolom pengiriman diamond (buat database lama)
+const existingOrderCols = db.prepare('PRAGMA table_info(orders)').all().map((c) => c.name);
+if (!existingOrderCols.includes('delivery_status')) {
+  db.exec("ALTER TABLE orders ADD COLUMN delivery_status TEXT DEFAULT 'belum_diproses'");
+}
+if (!existingOrderCols.includes('delivery_sn')) {
+  db.exec('ALTER TABLE orders ADD COLUMN delivery_sn TEXT');
+}
+if (!existingOrderCols.includes('delivery_message')) {
+  db.exec('ALTER TABLE orders ADD COLUMN delivery_message TEXT');
+}
 
 module.exports = db;

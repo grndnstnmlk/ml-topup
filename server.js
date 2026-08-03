@@ -7,13 +7,21 @@ const db = require('./db');
 const productsRouter = require('./routes/products');
 const ordersRouter = require('./routes/orders');
 const webhookRouter = require('./routes/webhook');
+const digiflazzWebhookRouter = require('./routes/digiflazz-webhook');
 const checkIdRouter = require('./routes/check-id');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+// verify: simpan raw body mentah, dibutuhkan untuk cek signature webhook Digiflazz
+app.use(
+  express.json({
+    verify: (req, res, buf) => {
+      req.rawBody = buf;
+    },
+  })
+);
 app.use(express.urlencoded({ extended: true }));
 
 // Auto-seed produk jika tabel masih kosong (memudahkan first run)
@@ -26,6 +34,7 @@ if (count === 0) {
 app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/webhook', webhookRouter);
+app.use('/api/digiflazz-webhook', digiflazzWebhookRouter);
 app.use('/api/check-id', checkIdRouter);
 
 app.use(express.static(path.join(__dirname, 'public')));
