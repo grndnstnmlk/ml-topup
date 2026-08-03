@@ -29,6 +29,13 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'Produk tidak ditemukan' });
     }
 
+    if (!product.digiflazz_sku) {
+      console.warn(`[orders] Ditolak: produk id=${product.id} (${product.name}) belum punya digiflazz_sku.`);
+      return res.status(400).json({
+        error: 'Produk ini sedang tidak tersedia untuk sementara. Silakan pilih paket lain.',
+      });
+    }
+
     const orderId = `MLTOP-${Date.now()}-${nanoid(6).toUpperCase()}`;
 
     db.prepare(
