@@ -4,6 +4,17 @@ const db = require('./db');
 // 'weekly_pass' (Weekly Diamond Pass, kelipatan)
 // digiflazz_sku: kode produk (buyer_sku_code) di akun Digiflazz kamu, dipakai untuk
 // pengiriman diamond otomatis. Kosongkan (null) kalau belum ada SKU-nya.
+// game: 'mobile-legends' (default), 'free-fire', 'pubg-mobile', dst — dipakai frontend
+// untuk menampilkan tab game & field ID yang sesuai (lihat GAME_CONFIG di public/js/app.js).
+//
+// Cara nambah game baru (mis. Free Fire):
+// 1. Jalankan `node scripts/get-digiflazz-products.js "free fire"` untuk ambil daftar
+//    buyer_sku_code + harga asli dari akun Digiflazz kamu (JANGAN dikira-kira sendiri).
+// 2. Tambahkan produknya di array `products` di bawah, dengan `game: 'free-fire'` dan
+//    `sku:` diisi buyer_sku_code asli dari hasil langkah 1.
+// 3. Tambahkan entri game-nya juga di GAME_CONFIG (public/js/app.js) supaya tab & field
+//    ID-nya muncul di frontend.
+// 4. jalankan `npm run seed` (atau set FORCE_RESEED=true di Railway lalu redeploy).
 const products = [
   // ---- Paket Diamond kecil ----
   { name: '5 Diamonds',    diamonds: 5,    bonus: 0,  price: 1472,  sku: 'ml5' },
@@ -60,15 +71,15 @@ const products = [
 ];
 
 const insertStmt = db.prepare(`
-  INSERT INTO products (name, diamonds, bonus, price, is_popular, sort_order, category, original_price, digiflazz_sku)
-  VALUES (@name, @diamonds, @bonus, @price, @popular, @sort, @category, @original_price, @sku)
+  INSERT INTO products (name, diamonds, bonus, price, is_popular, sort_order, category, original_price, digiflazz_sku, game)
+  VALUES (@name, @diamonds, @bonus, @price, @popular, @sort, @category, @original_price, @sku, @game)
 `);
 
 const updateById = db.prepare(`
   UPDATE products
   SET name = @name, diamonds = @diamonds, bonus = @bonus, price = @price,
       is_popular = @popular, sort_order = @sort, category = @category,
-      original_price = @original_price, digiflazz_sku = @sku
+      original_price = @original_price, digiflazz_sku = @sku, game = @game
   WHERE id = @id
 `);
 
@@ -96,6 +107,7 @@ const seedAll = db.transaction((items) => {
       category: p.category || 'diamond',
       original_price: p.original_price || null,
       sku: p.sku || null,
+      game: p.game || 'mobile-legends',
     };
 
     const existing = (p.sku && findBySku.get(p.sku)) || findByName.get(p.name);

@@ -4,6 +4,10 @@ const midtransClient = require('midtrans-client');
 const { nanoid } = require('nanoid');
 const db = require('../db');
 
+// Game yang butuh Zone/Server ID selain User ID (mis. Mobile Legends).
+// Game lain (Free Fire, PUBG Mobile, dst) cukup 1 ID saja.
+const GAMES_REQUIRING_ZONE = ['mobile-legends'];
+
 const snap = new midtransClient.Snap({
   isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -15,9 +19,9 @@ router.post('/', async (req, res) => {
   try {
     const { product_id, game_user_id, game_zone_id, contact } = req.body;
 
-    if (!product_id || !game_user_id || !game_zone_id) {
+    if (!product_id || !game_user_id) {
       return res.status(400).json({
-        error: 'product_id, game_user_id, dan game_zone_id wajib diisi',
+        error: 'product_id dan game_user_id wajib diisi',
       });
     }
 
@@ -27,6 +31,10 @@ router.post('/', async (req, res) => {
 
     if (!product) {
       return res.status(404).json({ error: 'Produk tidak ditemukan' });
+    }
+
+    if (GAMES_REQUIRING_ZONE.includes(product.game) && !game_zone_id) {
+      return res.status(400).json({ error: 'Zone ID wajib diisi untuk game ini.' });
     }
 
     if (!product.digiflazz_sku) {
@@ -41,7 +49,7 @@ router.post('/', async (req, res) => {
     db.prepare(
       `INSERT INTO orders (order_id, product_id, game_user_id, game_zone_id, contact, price, status)
        VALUES (?, ?, ?, ?, ?, ?, 'pending')`
-    ).run(orderId, product.id, game_user_id, game_zone_id, contact || null, product.price);
+    ).run(orderId, product.id, game_user_id, game_zone_id || '', contact || null, product.price);
 
     // Buat transaksi Midtrans Snap
     const parameter = {
@@ -59,8 +67,7 @@ router.post('/', async (req, res) => {
       ],
       customer_details: {
         first_name: `ID ${game_user_id}`,
-        email: contact && contact.includes('@') ? contact : 'noemail@example.com',
-        phone: contact && !contact.includes('@') ? contact : undefined,
+        email: contact || 'noemail@example.com',
       },
       callbacks: {
         finish: `${process.env.APP_BASE_URL}/status.html?order_id=${orderId}`,

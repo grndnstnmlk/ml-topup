@@ -7,8 +7,36 @@
   const errorText = document.getElementById('form-error');
   const userIdInput = document.getElementById('game_user_id');
   const zoneIdInput = document.getElementById('game_zone_id');
+  const zoneField = document.getElementById('zone-field');
+  const userIdLabel = document.getElementById('user-id-label');
+  const accountHint = document.getElementById('account-hint');
   const idCheckBox = document.getElementById('id-check');
+  const gameSwitcher = document.getElementById('game-switcher');
 
+  // Tambah game baru di sini setelah produknya diisi SKU asli di db-seed.js
+  // (lihat komentar di db-seed.js untuk caranya).
+  const GAME_CONFIG = {
+    'mobile-legends': {
+      label: 'Mobile Legends',
+      needsZone: true,
+      userLabel: 'ID',
+      hint: 'ID dan Server ada di halaman profil, di bawah nama akunmu di dalam game.',
+    },
+    'free-fire': {
+      label: 'Free Fire',
+      needsZone: false,
+      userLabel: 'Player ID',
+      hint: 'Player ID ada di halaman profil, di bawah nickname kamu.',
+    },
+    'pubg-mobile': {
+      label: 'PUBG Mobile',
+      needsZone: false,
+      userLabel: 'Character ID',
+      hint: 'Character ID ada di halaman profil akun kamu.',
+    },
+  };
+
+  let currentGame = 'mobile-legends';
   let selectedProductId = null;
   let products = [];
 
@@ -35,6 +63,12 @@
   let checkIdTimer = null;
 
   async function checkPlayerId() {
+    // Cek nickname (Velixs) baru mendukung Mobile Legends untuk sekarang.
+    if (currentGame !== 'mobile-legends') {
+      hideIdCheck();
+      return;
+    }
+
     const userId = userIdInput.value.trim();
     const zoneId = zoneIdInput.value.trim();
 
@@ -171,13 +205,68 @@
   }
 
   async function loadProducts() {
+    productGrid.innerHTML = '<p class="loading-text">Memuat paket…</p>';
+    selectedProductId = null;
+    payButton.disabled = true;
+    orderSummary.classList.remove('has-item');
+    orderSummary.innerHTML = '<p class="order-summary-empty">Belum ada item produk yang dipilih.</p>';
+
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch(`/api/products?game=${encodeURIComponent(currentGame)}`);
       products = await res.json();
       renderProducts();
     } catch (err) {
       productGrid.innerHTML = '<p class="loading-text">Gagal memuat paket. Refresh halaman.</p>';
     }
+  }
+
+  function applyGameConfig(game) {
+    const cfg = GAME_CONFIG[game];
+    userIdLabel.textContent = cfg.userLabel;
+    accountHint.textContent = cfg.hint;
+    zoneField.hidden = !cfg.needsZone;
+    zoneIdInput.value = '';
+    userIdInput.value = '';
+    hideIdCheck();
+  }
+
+  function setGame(game) {
+    currentGame = game;
+    gameSwitcher.querySelectorAll('.game-tab').forEach((btn) => {
+      btn.classList.toggle('is-active', btn.dataset.game === game);
+    });
+    applyGameConfig(game);
+    loadProducts();
+  }
+
+  async function initGameSwitcher() {
+    let games = ['mobile-legends'];
+    try {
+      const res = await fetch('/api/products/games');
+      const available = await res.json();
+      if (Array.isArray(available) && available.length) games = available;
+    } catch (err) {
+      // Kalau gagal ambil daftar game, tetap fallback ke Mobile Legends saja.
+    }
+
+    // Urutkan sesuai urutan definisi di GAME_CONFIG, abaikan game yang belum dikenal frontend.
+    const ordered = Object.keys(GAME_CONFIG).filter((g) => games.includes(g));
+    const finalGames = ordered.length ? ordered : ['mobile-legends'];
+
+    gameSwitcher.innerHTML = finalGames
+      .map(
+        (g, i) => `<button type="button" class="game-tab${i === 0 ? ' is-active' : ''}" data-game="${g}">${GAME_CONFIG[g].label}</button>`
+      )
+      .join('');
+    gameSwitcher.hidden = finalGames.length < 2;
+
+    gameSwitcher.querySelectorAll('.game-tab').forEach((btn) => {
+      btn.addEventListener('click', () => setGame(btn.dataset.game));
+    });
+
+    currentGame = finalGames[0];
+    applyGameConfig(currentGame);
+    loadProducts();
   }
 
   function showError(message) {
@@ -197,8 +286,11 @@
     const game_zone_id = document.getElementById('game_zone_id').value.trim();
     const contact = document.getElementById('contact').value.trim();
 
+    const cfg = GAME_CONFIG[currentGame];
+
     if (!selectedProductId) return showError('Pilih paket diamond terlebih dahulu.');
-    if (!game_user_id || !game_zone_id) return showError('User ID dan Zone ID wajib diisi.');
+    if (!game_user_id) return showError(`${cfg.userLabel} wajib diisi.`);
+    if (cfg.needsZone && !game_zone_id) return showError('Zone ID wajib diisi.');
 
     payButton.disabled = true;
     const originalLabel = payLabel.textContent;
@@ -211,7 +303,7 @@
         body: JSON.stringify({
           product_id: selectedProductId,
           game_user_id,
-          game_zone_id,
+          game_zone_id: cfg.needsZone ? game_zone_id : undefined,
           contact,
         }),
       });
@@ -247,5 +339,5 @@
     }
   });
 
-  loadProducts();
+  initGameSwitcher();
 })();

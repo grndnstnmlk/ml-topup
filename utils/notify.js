@@ -29,52 +29,10 @@ async function sendEmail(to, subject, html) {
   }
 }
 
-// --- WHATSAPP (Fonnte) ---
-function normalizePhone(raw) {
-  let phone = raw.replace(/[^0-9]/g, '');
-  if (phone.startsWith('0')) phone = '62' + phone.slice(1);
-  if (!phone.startsWith('62')) phone = '62' + phone;
-  return phone;
-}
-
-async function sendWhatsApp(rawPhone, message) {
-  const token = process.env.FONNTE_TOKEN;
-  if (!token) {
-    console.log('[notify] FONNTE_TOKEN belum diisi, lewati kirim WhatsApp.');
-    return;
-  }
-
-  const target = normalizePhone(rawPhone);
-
-  try {
-    const res = await fetch('https://api.fonnte.com/send', {
-      method: 'POST',
-      headers: {
-        Authorization: token,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: new URLSearchParams({ target, message }),
-    });
-    const data = await res.json();
-    if (data.status) {
-      console.log(`[notify] WhatsApp terkirim ke ${target}`);
-    } else {
-      console.error('[notify] Fonnte menolak pesan:', JSON.stringify(data));
-    }
-  } catch (err) {
-    console.error('[notify] Gagal kirim WhatsApp:', err.message);
-  }
-}
-
-// --- Helper utama: kirim ke email ATAU WhatsApp tergantung format contact ---
+// --- Helper utama: kirim notifikasi ke email pelanggan ---
 async function notifyCustomer(contact, { subject, message, html }) {
   if (!contact) return;
-
-  if (contact.includes('@')) {
-    await sendEmail(contact, subject, html || `<p>${message}</p>`);
-  } else {
-    await sendWhatsApp(contact, message);
-  }
+  await sendEmail(contact, subject, html || `<p>${message}</p>`);
 }
 
-module.exports = { sendEmail, sendWhatsApp, notifyCustomer };
+module.exports = { sendEmail, notifyCustomer };

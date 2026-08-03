@@ -36,6 +36,9 @@ if (!existingCols.includes('original_price')) {
 if (!existingCols.includes('digiflazz_sku')) {
   db.exec('ALTER TABLE products ADD COLUMN digiflazz_sku TEXT');
 }
+if (!existingCols.includes('game')) {
+  db.exec("ALTER TABLE products ADD COLUMN game TEXT DEFAULT 'mobile-legends'");
+}
 
 db.exec(`
 

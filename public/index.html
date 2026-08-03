@@ -42,6 +42,8 @@
       </div>
 
       <form class="order-panel" id="order-form">
+        <div class="game-switcher" id="game-switcher" aria-label="Pilih game"></div>
+
         <div class="order-panel-head">
           <span class="order-step">01</span>
           <span>Data Akun</span>
@@ -49,22 +51,22 @@
 
         <div class="field-row">
           <div class="field">
-            <label for="game_user_id">ID</label>
+            <label for="game_user_id" id="user-id-label">ID</label>
             <input type="text" id="game_user_id" inputmode="numeric" placeholder="123456789" required>
           </div>
-          <div class="field field-small">
+          <div class="field field-small" id="zone-field">
             <label for="game_zone_id">Server</label>
-            <input type="text" id="game_zone_id" inputmode="numeric" placeholder="1234" required>
+            <input type="text" id="game_zone_id" inputmode="numeric" placeholder="1234">
           </div>
         </div>
 
-        <p class="hint">ID dan Server ada di halaman profil, di bawah nama akunmu di dalam game.</p>
+        <p class="hint" id="account-hint">ID dan Server ada di halaman profil, di bawah nama akunmu di dalam game.</p>
 
         <div class="id-check" id="id-check" hidden></div>
 
         <div class="field">
-          <label for="contact">Email / No. WhatsApp <span class="optional">(untuk notifikasi)</span></label>
-          <input type="text" id="contact" placeholder="nama@email.com atau 08xxxxxxxxxx">
+          <label for="contact">Email <span class="optional">(untuk notifikasi)</span></label>
+          <input type="email" id="contact" placeholder="nama@email.com">
         </div>
 
         <div class="order-panel-head order-panel-head-spaced">
@@ -99,7 +101,7 @@
         <div class="how-step">
           <span class="how-num">01</span>
           <h3>Masukkan ID</h3>
-          <p>Isi User ID dan Zone ID akun Mobile Legends kamu dengan benar.</p>
+          <p>Pilih game, lalu isi ID akun kamu dengan benar (dan Zone ID kalau game-nya butuh).</p>
         </div>
         <div class="how-step">
           <span class="how-num">02</span>
