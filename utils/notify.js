@@ -1,39 +1,29 @@
-const nodemailer = require('nodemailer');
-
-// --- EMAIL (Gmail SMTP via Nodemailer) ---
-let transporter = null;
-
-function getTransporter() {
-  if (transporter) return transporter;
-
-  const user = process.env.GMAIL_USER;
-  const pass = process.env.GMAIL_APP_PASSWORD;
-
-  if (!user || !pass) return null;
-
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user, pass },
-  });
-
-  return transporter;
-}
-
+// --- EMAIL (Resend API — HTTP based, tidak kena blokir port SMTP) ---
 async function sendEmail(to, subject, html) {
-  const t = getTransporter();
-  if (!t) {
-    console.log('[notify] GMAIL_USER/GMAIL_APP_PASSWORD belum diisi, lewati kirim email.');
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM || 'GREEND TOP UP <onboarding@resend.dev>';
+
+  if (!apiKey) {
+    console.log('[notify] RESEND_API_KEY belum diisi, lewati kirim email.');
     return;
   }
 
   try {
-    await t.sendMail({
-      from: `"GREEND TOP UP" <${process.env.GMAIL_USER}>`,
-      to,
-      subject,
-      html,
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to, subject, html }),
     });
-    console.log(`[notify] Email terkirim ke ${to}`);
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error('[notify] Resend menolak email:', JSON.stringify(data));
+      return;
+    }
+    console.log(`[notify] Email terkirim ke ${to} (id: ${data.id})`);
   } catch (err) {
     console.error('[notify] Gagal kirim email:', err.message);
   }

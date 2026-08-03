@@ -42,19 +42,23 @@
 
   function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
 
-  async function lookup(orderId) {
-    card.innerHTML = '<p class="status-sub">Memuat…</p>';
+  let pollTimer = null;
+
+  async function lookup(orderId, isPoll) {
+    if (!isPoll) card.innerHTML = '<p class="status-sub">Memuat…</p>';
     try {
       const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`);
       const data = await res.json();
 
       if (!res.ok) {
+        clearInterval(pollTimer);
         card.innerHTML = `<h1>Tidak ditemukan</h1><p class="status-sub">Order ID "${orderId}" tidak ada di sistem kami.</p>`;
         return;
       }
 
       const label = statusLabel[data.status] || data.status;
       const cls = statusClass[data.status] || 'pending';
+      const shareUrl = `${window.location.origin}/status.html?order_id=${encodeURIComponent(data.order_id)}`;
 
       card.innerHTML = `
         <span class="status-pill ${cls}">● ${label}</span>
@@ -64,14 +68,41 @@
         <div class="status-row"><span>Total Bayar</span><span>${formatRupiah(data.price)}</span></div>
         <div class="status-row"><span>Metode Pembayaran</span><span>${data.payment_type || '—'}</span></div>
         <div class="status-row"><span>Dibuat</span><span>${new Date(data.created_at).toLocaleString('id-ID')}</span></div>
+        ${data.status === 'pending' ? '<p class="status-sub">Halaman ini akan update otomatis begitu pembayaran terkonfirmasi…</p>' : ''}
+        <button type="button" class="status-copy-btn" id="copy-link-btn">Salin Link Cek Status Ini</button>
       `;
+
+      const copyBtn = document.getElementById('copy-link-btn');
+      if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(shareUrl);
+            copyBtn.textContent = 'Tersalin!';
+            setTimeout(() => (copyBtn.textContent = 'Salin Link Cek Status Ini'), 1500);
+          } catch {
+            copyBtn.textContent = shareUrl;
+          }
+        });
+      }
+
+      // Selama masih pending, cek ulang tiap 4 detik. Berhenti begitu lunas/gagal.
+      if (data.status === 'pending') {
+        if (!pollTimer) {
+          pollTimer = setInterval(() => lookup(orderId, true), 4000);
+        }
+      } else {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
     } catch (err) {
-      card.innerHTML = '<p class="status-sub">Gagal memuat status. Coba lagi.</p>';
+      if (!isPoll) card.innerHTML = '<p class="status-sub">Gagal memuat status. Coba lagi.</p>';
     }
   }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    clearInterval(pollTimer);
+    pollTimer = null;
     if (input.value.trim()) lookup(input.value.trim());
   });
 
