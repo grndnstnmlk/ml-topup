@@ -1,7 +1,7 @@
 // --- EMAIL (Resend API — HTTP based, tidak kena blokir port SMTP) ---
 async function sendEmail(to, subject, html) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM || 'GREEND TOP UP <onboarding@resend.dev>';
+  const from = process.env.RESEND_FROM || 'JAGESTORE <onboarding@resend.dev>';
 
   if (!apiKey) {
     console.log('[notify] RESEND_API_KEY belum diisi, lewati kirim email.');

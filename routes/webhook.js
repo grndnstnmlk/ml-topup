@@ -58,8 +58,8 @@ router.post('/midtrans', async (req, res) => {
       if (status === 'paid') {
         await notifyCustomer(order.contact, {
           subject: `Pembayaran Berhasil — ${orderId}`,
-          message: `Pembayaran kamu untuk ${order.product_name} (Order ${orderId}) sudah berhasil! Diamond akan segera diproses ke akun ${order.game_user_id} (${order.game_zone_id}). Terima kasih sudah top up di GREEND TOP UP.`,
-          html: `<p>Halo,</p><p>Pembayaran kamu untuk <b>${order.product_name}</b> (Order <b>${orderId}</b>) sudah berhasil!</p><p>Diamond akan segera diproses ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Terima kasih sudah top up di GREEND TOP UP.</p>`,
+          message: `Pembayaran kamu untuk ${order.product_name} (Order ${orderId}) sudah berhasil! Diamond akan segera diproses ke akun ${order.game_user_id} (${order.game_zone_id}). Terima kasih sudah top up di JAGESTORE.`,
+          html: `<p>Halo,</p><p>Pembayaran kamu untuk <b>${order.product_name}</b> (Order <b>${orderId}</b>) sudah berhasil!</p><p>Diamond akan segera diproses ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Terima kasih sudah top up di JAGESTORE.</p>`,
         });
       } else if (status === 'failed') {
         await notifyCustomer(order.contact, {

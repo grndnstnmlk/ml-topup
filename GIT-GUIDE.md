@@ -1,4 +1,4 @@
-# Panduan Git & GitHub — GREEND TOP UP
+# Panduan Git & GitHub — JAGESTORE
 
 Catatan lengkap perintah terminal untuk upload/update project ini ke GitHub.
 
