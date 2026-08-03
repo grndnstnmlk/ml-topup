@@ -9,6 +9,7 @@ const ordersRouter = require('./routes/orders');
 const webhookRouter = require('./routes/webhook');
 const digiflazzWebhookRouter = require('./routes/digiflazz-webhook');
 const checkIdRouter = require('./routes/check-id');
+const { router: adminRouter, requireAdminAuth } = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,13 @@ app.use('/api/orders', ordersRouter);
 app.use('/api/webhook', webhookRouter);
 app.use('/api/digiflazz-webhook', digiflazzWebhookRouter);
 app.use('/api/check-id', checkIdRouter);
+app.use('/api/admin', adminRouter);
+
+// Halaman admin.html digerbang lewat auth yang sama dengan /api/admin
+// (didaftarkan sebelum express.static supaya tidak ke-serve tanpa login)
+app.get('/admin.html', requireAdminAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
