@@ -64,17 +64,22 @@ const insertStmt = db.prepare(`
   VALUES (@name, @diamonds, @bonus, @price, @popular, @sort, @category, @original_price, @sku)
 `);
 
-const updateBySku = db.prepare(`
+const updateById = db.prepare(`
   UPDATE products
   SET name = @name, diamonds = @diamonds, bonus = @bonus, price = @price,
       is_popular = @popular, sort_order = @sort, category = @category,
-      original_price = @original_price
-  WHERE digiflazz_sku = @sku
+      original_price = @original_price, digiflazz_sku = @sku
+  WHERE id = @id
 `);
 
 const findBySku = db.prepare('SELECT id FROM products WHERE digiflazz_sku = ?');
+// Fallback: produk lama (dari sebelum kolom digiflazz_sku ada) tidak punya SKU
+// sama sekali, jadi dicari berdasarkan nama supaya baris lama itu di-UPDATE
+// (termasuk backfill SKU-nya), bukan malah bikin baris baru yang duplikat.
+const findByName = db.prepare('SELECT id FROM products WHERE name = ? AND digiflazz_sku IS NULL');
 
-// Upsert: update produk yang SKU-nya sudah ada, insert kalau belum ada.
+// Upsert: update produk yang sudah ada (dicocokkan lewat SKU, atau lewat nama
+// kalau SKU-nya belum ke-set), insert kalau benar-benar belum ada sama sekali.
 // SENGAJA TIDAK menghapus produk lama — kalau ada order yang sudah pernah
 // dibuat, product_id itu terikat foreign key dan menghapusnya akan gagal
 // (SQLITE_CONSTRAINT_FOREIGNKEY), atau kalaupun dipaksa, riwayat order lama
@@ -93,9 +98,9 @@ const seedAll = db.transaction((items) => {
       sku: p.sku || null,
     };
 
-    const existing = p.sku ? findBySku.get(p.sku) : null;
+    const existing = (p.sku && findBySku.get(p.sku)) || findByName.get(p.name);
     if (existing) {
-      updateBySku.run(payload);
+      updateById.run({ ...payload, id: existing.id });
     } else {
       insertStmt.run(payload);
     }
@@ -104,4 +109,21 @@ const seedAll = db.transaction((items) => {
 
 seedAll(products);
 
-console.log(`Seed selesai: ${products.length} produk diperiksa (update/insert), tidak ada yang dihapus.`);
+// Bersih-bersih: hapus baris produk duplikat (nama sama, salah satunya belum
+// punya SKU) HANYA kalau baris duplikat itu tidak pernah dipakai order manapun.
+// Ini buat beresin duplikat yang mungkin sempat kebuat oleh seed versi sebelum
+// perbaikan ini (yang mencocokkan produk lewat SKU saja).
+const dupeCleanup = db.prepare(`
+  DELETE FROM products
+  WHERE digiflazz_sku IS NULL
+    AND id NOT IN (SELECT DISTINCT product_id FROM orders)
+    AND name IN (
+      SELECT name FROM products WHERE digiflazz_sku IS NOT NULL
+    )
+`);
+const removed = dupeCleanup.run();
+if (removed.changes > 0) {
+  console.log(`Membersihkan ${removed.changes} baris produk duplikat (tanpa SKU, tidak dipakai order manapun).`);
+}
+
+console.log(`Seed selesai: ${products.length} produk diperiksa (update/insert), tidak ada yang dihapus kalau masih dipakai order.`);
