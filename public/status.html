@@ -76,6 +76,7 @@
         ${data.status === 'pending' && data.payment_type === 'qris-manual' ? `
           <div class="qris-manual-box">
             <img src="/assets/qris.png" alt="QRIS" class="qris-manual-img">
+            <a class="status-download-btn" href="/assets/qris.png" download="QRIS-${data.order_id}.png">⬇ Unduh QRIS</a>
             <p class="status-sub">Scan QRIS di atas pakai aplikasi DANA / e-wallet / m-banking apapun, bayar sesuai nominal (${formatRupiah(data.price)}), lalu tunggu — kami konfirmasi manual begitu pembayaran diterima (biasanya &lt;30 menit di jam kerja).</p>
             <a class="status-wa-btn" target="_blank" rel="noopener" href="${waLink(data.order_id, `Halo admin, saya sudah bayar untuk Order ${data.order_id} (${data.product_name}). Mohon dikonfirmasi. Terima kasih.`)}">
               Konfirmasi Sudah Bayar via WhatsApp

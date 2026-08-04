@@ -638,6 +638,27 @@ a { color: inherit; text-decoration: none; }
   margin: 0 0 12px;
 }
 
+.status-download-btn {
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto 12px;
+  padding: 9px;
+  border-radius: 8px;
+  border: 1px solid var(--line-bright);
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  text-align: center;
+  text-decoration: none;
+}
+
+.status-download-btn:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
 .status-wa-btn {
   display: block;
   width: 100%;
