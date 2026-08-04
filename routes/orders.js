@@ -8,6 +8,12 @@ const db = require('../db');
 // Game lain (Free Fire, PUBG Mobile, dst) cukup 1 ID saja.
 const GAMES_REQUIRING_ZONE = ['mobile-legends'];
 
+// PAYMENT_METHOD=qris_manual -> bypass Midtrans sepenuhnya, tampilkan QRIS statis
+// (punya sendiri, mis. DANA Bisnis) dan pembayaran dikonfirmasi manual lewat
+// tombol "Tandai Lunas" di admin dashboard. Dipakai selagi akun Midtrans belum
+// di-acc. Ganti balik ke 'midtrans' (atau hapus variabelnya) begitu sudah aktif.
+const PAYMENT_METHOD = process.env.PAYMENT_METHOD || 'midtrans';
+
 const snap = new midtransClient.Snap({
   isProduction: process.env.MIDTRANS_IS_PRODUCTION === 'true',
   serverKey: process.env.MIDTRANS_SERVER_KEY,
@@ -50,10 +56,19 @@ router.post('/', async (req, res) => {
 
     const orderId = `MLTOP-${Date.now()}-${nanoid(6).toUpperCase()}`;
 
+    if (PAYMENT_METHOD === 'qris_manual') {
+      db.prepare(
+        `INSERT INTO orders (order_id, product_id, game_user_id, game_zone_id, contact, price, status, payment_type)
+         VALUES (?, ?, ?, ?, ?, ?, 'pending', 'qris-manual')`
+      ).run(orderId, product.id, game_user_id, game_zone_id || '', contact, product.price);
+
+      return res.json({ order_id: orderId, manual_qris: true });
+    }
+
     db.prepare(
       `INSERT INTO orders (order_id, product_id, game_user_id, game_zone_id, contact, price, status)
        VALUES (?, ?, ?, ?, ?, ?, 'pending')`
-    ).run(orderId, product.id, game_user_id, game_zone_id || '', contact || null, product.price);
+    ).run(orderId, product.id, game_user_id, game_zone_id || '', contact, product.price);
 
     // Buat transaksi Midtrans Snap
     const parameter = {

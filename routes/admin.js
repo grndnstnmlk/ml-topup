@@ -4,6 +4,7 @@ const router = express.Router();
 const db = require('../db');
 const { topupDiamond } = require('../utils/digiflazz');
 const { notifyCustomer } = require('../utils/notify');
+const { fulfillPaidOrder } = require('../utils/fulfillment');
 
 // Auth sederhana (HTTP Basic) khusus untuk dashboard admin.
 // Wajib set ADMIN_USER & ADMIN_PASSWORD di .env / environment variables Railway.
@@ -118,6 +119,30 @@ router.post('/orders/:order_id/retry', async (req, res) => {
   }
 
   res.json({ order_id: orderId, status: result.status, message: result.message, sn: result.sn || null });
+});
+
+// POST /api/admin/orders/:order_id/mark-paid - konfirmasi manual (mis. bayar
+// lewat QRIS statis punya sendiri selagi akun Midtrans belum di-acc), lalu
+// langsung kirim diamond lewat alur yang sama dengan webhook Midtrans.
+router.post('/orders/:order_id/mark-paid', async (req, res) => {
+  const orderId = req.params.order_id;
+
+  const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+
+  if (!order) return res.status(404).json({ error: 'Order tidak ditemukan' });
+
+  if (order.status === 'paid') {
+    return res.status(400).json({ error: 'Order ini sudah berstatus "paid" sebelumnya.' });
+  }
+
+  db.prepare(
+    `UPDATE orders SET status = 'paid', payment_type = COALESCE(payment_type, 'qris-manual'), updated_at = CURRENT_TIMESTAMP
+     WHERE order_id = ?`
+  ).run(orderId);
+
+  await fulfillPaidOrder(orderId);
+
+  res.json({ ok: true });
 });
 
 module.exports = { router, requireAdminAuth };

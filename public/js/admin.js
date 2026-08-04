@@ -50,6 +50,9 @@ async function loadOrders() {
     tbody.querySelectorAll('[data-retry]').forEach((btn) => {
       btn.addEventListener('click', () => retryOrder(btn.dataset.retry, btn));
     });
+    tbody.querySelectorAll('[data-markpaid]').forEach((btn) => {
+      btn.addEventListener('click', () => markPaid(btn.dataset.markpaid, btn));
+    });
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="9" class="admin-empty">Gagal memuat data.</td></tr>';
   }
@@ -57,6 +60,7 @@ async function loadOrders() {
 
 function renderRow(o) {
   const canRetry = o.status === 'paid' && o.delivery_status !== 'terkirim' && o.digiflazz_sku;
+  const canMarkPaid = o.status === 'pending';
   return `
     <tr>
       <td class="mono">${escapeHtml(o.order_id)}</td>
@@ -70,9 +74,29 @@ function renderRow(o) {
       </td>
       <td>${escapeHtml(o.contact) || '—'}</td>
       <td class="mono">${new Date(o.created_at).toLocaleString('id-ID')}</td>
-      <td>${canRetry ? `<button type="button" class="admin-retry-btn" data-retry="${escapeHtml(o.order_id)}">Retry</button>` : ''}</td>
+      <td>
+        ${canMarkPaid ? `<button type="button" class="admin-retry-btn" data-markpaid="${escapeHtml(o.order_id)}">Tandai Lunas</button>` : ''}
+        ${canRetry ? `<button type="button" class="admin-retry-btn" data-retry="${escapeHtml(o.order_id)}">Retry</button>` : ''}
+      </td>
     </tr>
   `;
+}
+
+async function markPaid(orderId, btn) {
+  if (!confirm(`Tandai order ${orderId} sebagai lunas? Diamond akan langsung dikirim.`)) return;
+
+  btn.disabled = true;
+  btn.textContent = '...';
+  try {
+    const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}/mark-paid`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Gagal menandai lunas.');
+    }
+  } catch (err) {
+    alert('Gagal menandai lunas: ' + err.message);
+  }
+  loadOrders();
 }
 
 async function retryOrder(orderId, btn) {

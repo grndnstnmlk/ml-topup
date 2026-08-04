@@ -39,6 +39,11 @@
 
   const statusLabel = { paid: 'Lunas — Diamond Terkirim', pending: 'Menunggu Pembayaran', failed: 'Gagal / Dibatalkan' };
   const statusClass = { paid: 'paid', pending: 'pending', failed: 'failed' };
+  const ADMIN_WHATSAPP = '6281295713923';
+
+  function waLink(orderId, text) {
+    return `https://wa.me/${ADMIN_WHATSAPP}?text=${encodeURIComponent(text)}`;
+  }
 
   function formatRupiah(n) { return 'Rp' + Number(n).toLocaleString('id-ID'); }
 
@@ -68,8 +73,18 @@
         <div class="status-row"><span>Total Bayar</span><span>${formatRupiah(data.price)}</span></div>
         <div class="status-row"><span>Metode Pembayaran</span><span>${data.payment_type || '—'}</span></div>
         <div class="status-row"><span>Dibuat</span><span>${new Date(data.created_at).toLocaleString('id-ID')}</span></div>
+        ${data.status === 'pending' && data.payment_type === 'qris-manual' ? `
+          <div class="qris-manual-box">
+            <img src="/assets/qris.png" alt="QRIS" class="qris-manual-img">
+            <p class="status-sub">Scan QRIS di atas pakai aplikasi DANA / e-wallet / m-banking apapun, bayar sesuai nominal (${formatRupiah(data.price)}), lalu tunggu — kami konfirmasi manual begitu pembayaran diterima (biasanya &lt;30 menit di jam kerja).</p>
+            <a class="status-wa-btn" target="_blank" rel="noopener" href="${waLink(data.order_id, `Halo admin, saya sudah bayar untuk Order ${data.order_id} (${data.product_name}). Mohon dikonfirmasi. Terima kasih.`)}">
+              Konfirmasi Sudah Bayar via WhatsApp
+            </a>
+          </div>
+        ` : ''}
         ${data.status === 'pending' ? '<p class="status-sub">Halaman ini akan update otomatis begitu pembayaran terkonfirmasi…</p>' : ''}
         <button type="button" class="status-copy-btn" id="copy-link-btn">Salin Link Cek Status Ini</button>
+        <a class="status-wa-link" target="_blank" rel="noopener" href="${waLink(data.order_id, `Halo admin, saya butuh bantuan untuk Order ${data.order_id}.`)}">Butuh bantuan? Hubungi Admin via WhatsApp</a>
       `;
 
       const copyBtn = document.getElementById('copy-link-btn');

@@ -318,6 +318,13 @@
         return;
       }
 
+      // PAYMENT_METHOD=qris_manual di server -> tidak ada Snap token, langsung
+      // arahkan ke halaman status yang akan menampilkan QRIS statis untuk dibayar.
+      if (data.manual_qris) {
+        window.location.href = `/status.html?order_id=${data.order_id}`;
+        return;
+      }
+
       // Buka popup pembayaran Midtrans Snap
       if (window.snap) {
         window.snap.pay(data.snap_token, {
