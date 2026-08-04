@@ -39,6 +39,10 @@
   let currentGame = 'mobile-legends';
   let selectedProductId = null;
   let products = [];
+  // false hanya kalau Velixs sudah cek dan bilang ID tidak ditemukan — dalam
+  // kondisi ini "Pesan Sekarang" wajib dikunci. Default true (tidak mengunci)
+  // untuk game yang belum didukung Velixs, atau kalau fitur cek lagi down.
+  let idIsValid = true;
 
   const diamondIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond">`;
   const passIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond product-diamond-pass">`;
@@ -49,15 +53,23 @@
     weekly_pass: { title: '🔥 Special Items', eyebrow: 'Weekly Diamond Pass' },
   };
 
+  function updatePayButtonState() {
+    payButton.disabled = !selectedProductId || !idIsValid;
+  }
+
   function showIdCheck(state, text) {
     idCheckBox.hidden = false;
     idCheckBox.className = `id-check ${state}`;
     idCheckBox.textContent = text;
+    idIsValid = state !== 'not-found';
+    updatePayButtonState();
   }
 
   function hideIdCheck() {
     idCheckBox.hidden = true;
     idCheckBox.textContent = '';
+    idIsValid = true;
+    updatePayButtonState();
   }
 
   let checkIdTimer = null;
@@ -188,7 +200,7 @@
       card.classList.toggle('is-selected', Number(card.dataset.id) === id);
     });
     const product = products.find((p) => p.id === id);
-    payButton.disabled = false;
+    updatePayButtonState();
     payLabel.textContent = 'Pesan Sekarang';
 
     const displayName = product.diamonds > 0
@@ -291,6 +303,7 @@
     if (!selectedProductId) return showError('Pilih paket diamond terlebih dahulu.');
     if (!game_user_id) return showError(`${cfg.userLabel} wajib diisi.`);
     if (cfg.needsZone && !game_zone_id) return showError('Zone ID wajib diisi.');
+    if (!idIsValid) return showError('ID tidak ditemukan. Periksa kembali User ID & Zone ID.');
     if (!contact) return showError('Email wajib diisi.');
 
     payButton.disabled = true;
