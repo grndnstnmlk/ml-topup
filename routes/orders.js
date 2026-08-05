@@ -47,6 +47,25 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Zone ID wajib diisi untuk game ini.' });
     }
 
+    // Bonus First Top Up cuma sekali per akun (game_user_id + game_zone_id) —
+    // dicek dari order yang sudah 'paid', bukan yang masih pending/gagal.
+    if (product.category === 'first_topup') {
+      const priorFirstTopup = db
+        .prepare(
+          `SELECT orders.id FROM orders
+           JOIN products ON products.id = orders.product_id
+           WHERE orders.game_user_id = ? AND orders.game_zone_id = ?
+             AND products.category = 'first_topup' AND orders.status = 'paid'`
+        )
+        .get(game_user_id, game_zone_id || '');
+
+      if (priorFirstTopup) {
+        return res.status(400).json({
+          error: 'Akun ini sudah pernah pakai bonus First Top Up. Silakan pilih paket diamond reguler.',
+        });
+      }
+    }
+
     if (!product.digiflazz_sku) {
       console.warn(`[orders] Ditolak: produk id=${product.id} (${product.name}) belum punya digiflazz_sku.`);
       return res.status(400).json({

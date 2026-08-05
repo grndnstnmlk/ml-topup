@@ -10,6 +10,7 @@ const webhookRouter = require('./routes/webhook');
 const digiflazzWebhookRouter = require('./routes/digiflazz-webhook');
 const checkIdRouter = require('./routes/check-id');
 const { router: adminRouter, requireAdminAuth } = require('./routes/admin');
+const { deleteStalePendingOrders } = require('./utils/cleanup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,6 +56,11 @@ app.get('/admin.html', requireAdminAuth, (req, res) => {
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (req, res) => res.json({ ok: true }));
+
+// Hapus order 'pending' yang sudah lewat 3 hari (ditinggal pembeli) — jalan
+// sekali saat startup, lalu diulang tiap 6 jam selama server hidup.
+deleteStalePendingOrders();
+setInterval(deleteStalePendingOrders, 6 * 60 * 60 * 1000);
 
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
