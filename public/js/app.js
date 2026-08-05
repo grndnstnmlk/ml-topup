@@ -45,7 +45,21 @@
   let idIsValid = true;
 
   const diamondIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond">`;
-  const passIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond product-diamond-pass">`;
+  const passIcon = `<img src="/assets/weekly-pass.png" alt="" class="product-diamond product-diamond-pass">`;
+
+  // Ikon diamond beda-beda tergantung jumlah total diamond (p.diamonds) di paket.
+  // Tambah range baru di sini kalau ada ikon lain lagi nanti.
+  const DIAMOND_ICON_RANGES = [
+    { min: 100, max: 410, src: '/assets/diamond-mid.png' },
+    { min: 500, max: 999, src: '/assets/diamond-500-999.png' },
+    { min: 1000, max: 30000, src: '/assets/diamond-1000-30000.png' },
+  ];
+
+  function diamondIconFor(p) {
+    const range = DIAMOND_ICON_RANGES.find((r) => p.diamonds >= r.min && p.diamonds <= r.max);
+    const src = range ? range.src : '/assets/diamond.png';
+    return `<img src="${src}" alt="" class="product-diamond">`;
+  }
 
   const CATEGORY_META = {
     diamond: { title: null },
@@ -142,7 +156,7 @@
       <button type="button" class="product-card" data-id="${p.id}" style="color: var(--text-primary)">
         ${p.is_popular ? '<span class="badge">POPULER</span>' : ''}
         ${disc ? `<span class="badge badge-discount">DISC ${disc}%</span>` : ''}
-        ${isPass ? passIcon : diamondIcon}
+        ${isPass ? passIcon : diamondIconFor(p)}
         <div class="product-name">${bonusLabel}</div>
         ${disc ? `<div class="product-original-price">${formatRupiah(p.original_price)}</div>` : ''}
         <div class="product-price">${formatRupiah(p.price)}</div>
