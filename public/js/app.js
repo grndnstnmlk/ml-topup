@@ -122,7 +122,10 @@
       const data = await res.json();
 
       if (data.valid && data.username) {
-        showIdCheck('found', `✓ Nickname: ${data.username}`);
+        const text = data.country
+          ? `✓ Nickname: ${data.username} (${data.country})`
+          : `✓ Nickname: ${data.username}`;
+        showIdCheck('found', text);
       } else if (data.unavailable) {
         // Fitur cek nickname sedang tidak tersedia — jangan halangi user checkout.
         hideIdCheck();

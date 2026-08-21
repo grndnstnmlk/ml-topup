@@ -45,7 +45,11 @@ router.post('/', async (req, res) => {
     const data = await response.json();
 
     if (data && data.success && data.name) {
-      return res.json({ valid: true, username: data.name });
+      return res.json({
+        valid: true,
+        username: data.name,
+        country: data.country || null,
+      });
     }
 
     return res.json({ valid: false, message: 'ID tidak ditemukan' });
