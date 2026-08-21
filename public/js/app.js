@@ -1,6 +1,7 @@
 (function () {
   const productGrid = document.getElementById('product-grid');
-  const orderSummary = document.getElementById('order-summary');
+  const sumItemName = document.getElementById('sum-item-name');
+  const sumItemPrice = document.getElementById('sum-item-price');
   const form = document.getElementById('order-form');
   const payButton = document.getElementById('pay-button');
   const payLabel = document.getElementById('pay-button-label');
@@ -12,43 +13,44 @@
   const accountHint = document.getElementById('account-hint');
   const idCheckBox = document.getElementById('id-check');
   const gameSwitcher = document.getElementById('game-switcher');
+  const categoryTabs = document.getElementById('category-tabs');
+  const searchInput = document.getElementById('search-packages');
+  const mobileCheckoutBar = document.getElementById('mobile-checkout-bar');
+  const mobileItemName = document.getElementById('mobile-item-name');
+  const mobileItemPrice = document.getElementById('mobile-item-price');
+  const mobileCtaBtn = document.getElementById('mobile-cta-btn');
+  const tickerText = document.getElementById('ticker-text');
 
-  // Tambah game baru di sini setelah produknya diisi SKU asli di db-seed.js
-  // (lihat komentar di db-seed.js untuk caranya).
   const GAME_CONFIG = {
     'mobile-legends': {
       label: 'Mobile Legends',
       needsZone: true,
-      userLabel: 'ID',
-      hint: 'ID dan Server ada di halaman profil, di bawah nama akunmu di dalam game.',
+      userLabel: 'User ID',
+      hint: 'ID dan Server ada di halaman profil, tepat di bawah foto & nama akunmu di dalam game.',
     },
     'free-fire': {
       label: 'Free Fire',
       needsZone: false,
       userLabel: 'Player ID',
-      hint: 'Player ID ada di halaman profil, di bawah nickname kamu.',
+      hint: 'Player ID ada di halaman profil akun Free Fire kamu.',
     },
     'pubg-mobile': {
       label: 'PUBG Mobile',
       needsZone: false,
       userLabel: 'Character ID',
-      hint: 'Character ID ada di halaman profil akun kamu.',
+      hint: 'Character ID ada di halaman profil akun PUBG kamu.',
     },
   };
 
   let currentGame = 'mobile-legends';
   let selectedProductId = null;
   let products = [];
-  // false hanya kalau Velixs sudah cek dan bilang ID tidak ditemukan — dalam
-  // kondisi ini "Pesan Sekarang" wajib dikunci. Default true (tidak mengunci)
-  // untuk game yang belum didukung Velixs, atau kalau fitur cek lagi down.
+  let currentFilter = 'all';
+  let searchQuery = '';
   let idIsValid = true;
 
-  const diamondIcon = `<img src="/assets/diamond.png" alt="" class="product-diamond">`;
-  const passIcon = `<img src="/assets/weekly-pass.png" alt="" class="product-diamond product-diamond-pass">`;
+  const passIcon = `<img src="/assets/weekly-pass.png" alt="Weekly Pass" class="product-diamond product-diamond-pass">`;
 
-  // Ikon diamond beda-beda tergantung jumlah total diamond (p.diamonds) di paket.
-  // Tambah range baru di sini kalau ada ikon lain lagi nanti.
   const DIAMOND_ICON_RANGES = [
     { min: 100, max: 410, src: '/assets/diamond-mid.png' },
     { min: 500, max: 999, src: '/assets/diamond-500-999.png' },
@@ -58,14 +60,23 @@
   function diamondIconFor(p) {
     const range = DIAMOND_ICON_RANGES.find((r) => p.diamonds >= r.min && p.diamonds <= r.max);
     const src = range ? range.src : '/assets/diamond.png';
-    return `<img src="${src}" alt="" class="product-diamond">`;
+    return `<img src="${src}" alt="Diamonds" class="product-diamond">`;
   }
 
   const CATEGORY_META = {
-    diamond: { title: null },
-    first_topup: { title: '🎁 First Top Up (Double Diamonds)', eyebrow: 'Bonus 2x — khusus top up pertama' },
     weekly_pass: { title: '🔥 Special Items', eyebrow: 'Weekly Diamond Pass' },
+    first_topup: { title: '🎁 First Top Up (Double Diamonds)', eyebrow: 'Bonus 2x lipat — khusus top up pertama akun' },
+    diamond: { title: '💎 Paket Diamond', eyebrow: 'Proses otomatis instan' },
   };
+
+  function formatRupiah(n) {
+    return 'Rp' + Number(n).toLocaleString('id-ID');
+  }
+
+  function discountPct(p) {
+    if (!p.original_price || p.original_price <= p.price) return null;
+    return Math.round((1 - p.price / p.original_price) * 100);
+  }
 
   function updatePayButtonState() {
     payButton.disabled = !selectedProductId || !idIsValid;
@@ -89,7 +100,6 @@
   let checkIdTimer = null;
 
   async function checkPlayerId() {
-    // Cek nickname mendukung Mobile Legends & Free Fire
     if (currentGame !== 'mobile-legends' && currentGame !== 'free-fire') {
       hideIdCheck();
       return;
@@ -107,7 +117,7 @@
       return;
     }
 
-    showIdCheck('checking', 'Mengecek nickname…');
+    showIdCheck('checking', 'Mengecek data akun…');
 
     try {
       const res = await fetch('/api/check-id', {
@@ -127,7 +137,6 @@
           : `✓ Nickname: ${data.username}`;
         showIdCheck('found', text);
       } else if (data.unavailable) {
-        // Fitur cek nickname sedang tidak tersedia — jangan halangi user checkout.
         hideIdCheck();
       } else {
         showIdCheck('not-found', '✕ ID tidak ditemukan. Periksa kembali User ID & Zone ID.');
@@ -139,22 +148,13 @@
 
   function scheduleCheckPlayerId() {
     clearTimeout(checkIdTimer);
-    checkIdTimer = setTimeout(checkPlayerId, 700);
+    checkIdTimer = setTimeout(checkPlayerId, 600);
   }
 
   userIdInput.addEventListener('input', scheduleCheckPlayerId);
   zoneIdInput.addEventListener('input', scheduleCheckPlayerId);
   userIdInput.addEventListener('blur', checkPlayerId);
   zoneIdInput.addEventListener('blur', checkPlayerId);
-
-  function formatRupiah(n) {
-    return 'Rp' + n.toLocaleString('id-ID');
-  }
-
-  function discountPct(p) {
-    if (!p.original_price || p.original_price <= p.price) return null;
-    return Math.round((1 - p.price / p.original_price) * 100);
-  }
 
   function renderCard(p) {
     const isPass = p.diamonds === 0;
@@ -163,10 +163,12 @@
       ? `${p.diamonds} (${p.diamonds - p.bonus}+${p.bonus}) Diamonds`
       : (isPass ? p.name : `${p.diamonds} Diamonds`);
 
+    const isSelected = selectedProductId === p.id;
+
     return `
-      <button type="button" class="product-card" data-id="${p.id}" style="color: var(--text-primary)">
+      <button type="button" class="product-card${isSelected ? ' is-selected' : ''}" data-id="${p.id}">
         ${p.is_popular ? '<span class="badge">POPULER</span>' : ''}
-        ${disc ? `<span class="badge badge-discount">DISC ${disc}%</span>` : ''}
+        ${disc ? `<span class="badge badge-discount">HEMAT ${disc}%</span>` : ''}
         ${isPass ? passIcon : diamondIconFor(p)}
         <div class="product-name">${bonusLabel}</div>
         ${disc ? `<div class="product-original-price">${formatRupiah(p.original_price)}</div>` : ''}
@@ -177,12 +179,37 @@
 
   function renderProducts() {
     if (!products.length) {
-      productGrid.innerHTML = '<p class="loading-text">Paket tidak tersedia saat ini.</p>';
+      productGrid.innerHTML = '<p class="loading-text">Tidak ada paket yang tersedia.</p>';
       return;
     }
 
+    // Filter berdasarkan kategori dan pencarian
+    let filtered = products.filter((p) => {
+      // Filter Kategori
+      if (currentFilter === 'weekly_pass' && p.category !== 'weekly_pass') return false;
+      if (currentFilter === 'first_topup' && p.category !== 'first_topup') return false;
+      if (currentFilter === 'popular' && !p.is_popular) return false;
+      if (currentFilter === 'diamond' && (p.category === 'weekly_pass' || p.category === 'first_topup')) return false;
+
+      // Filter Pencarian
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchName = p.name.toLowerCase().includes(query);
+        const matchDiamonds = String(p.diamonds).includes(query);
+        if (!matchName && !matchDiamonds) return false;
+      }
+
+      return true;
+    });
+
+    if (!filtered.length) {
+      productGrid.innerHTML = '<p class="loading-text">Tidak ada paket yang cocok dengan filter atau kata kunci.</p>';
+      return;
+    }
+
+    // Kelompokkan hasil
     const groups = {};
-    products.forEach((p) => {
+    filtered.forEach((p) => {
       const cat = p.category || 'diamond';
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(p);
@@ -190,7 +217,7 @@
 
     let html = '';
 
-    ['first_topup', 'weekly_pass'].forEach((cat) => {
+    ['weekly_pass', 'first_topup', 'diamond'].forEach((cat) => {
       if (!groups[cat] || !groups[cat].length) return;
       const meta = CATEGORY_META[cat];
       html += `
@@ -201,16 +228,6 @@
         </div>
       `;
     });
-
-    // Katalog diamond reguler tampil terakhir, di bawah kategori khusus
-    if (groups.diamond) {
-      html += `
-        <div class="product-category">
-          <h3 class="product-category-title">💎 Pilihan Diamond</h3>
-          <div class="product-subgrid">${groups.diamond.map(renderCard).join('')}</div>
-        </div>
-      `;
-    }
 
     productGrid.innerHTML = html;
 
@@ -226,34 +243,38 @@
     });
     const product = products.find((p) => p.id === id);
     updatePayButtonState();
-    payLabel.textContent = 'Pesan Sekarang';
+    payLabel.textContent = `Pesan Sekarang · ${formatRupiah(product.price)}`;
 
     const displayName = product.diamonds > 0
       ? `${product.diamonds} Diamonds`
       : product.name;
 
-    orderSummary.classList.add('has-item');
-    orderSummary.innerHTML = `
-      <div class="order-summary-item">
-        <span class="order-summary-item-name">${displayName}</span>
-        <span class="order-summary-item-price">${formatRupiah(product.price)}</span>
-      </div>
-    `;
+    sumItemName.textContent = displayName;
+    sumItemPrice.textContent = formatRupiah(product.price);
+
+    // Update floating mobile bar
+    if (mobileCheckoutBar) {
+      mobileItemName.textContent = displayName;
+      mobileItemPrice.textContent = formatRupiah(product.price);
+      mobileCheckoutBar.classList.add('is-visible');
+    }
   }
 
   async function loadProducts() {
-    productGrid.innerHTML = '<p class="loading-text">Memuat paket…</p>';
+    productGrid.innerHTML = '<p class="loading-text">Memuat paket produk…</p>';
     selectedProductId = null;
     payButton.disabled = true;
-    orderSummary.classList.remove('has-item');
-    orderSummary.innerHTML = '<p class="order-summary-empty">Belum ada item produk yang dipilih.</p>';
+    sumItemName.textContent = '—';
+    sumItemPrice.textContent = 'Rp0';
+    payLabel.textContent = 'Pesan Sekarang';
+    if (mobileCheckoutBar) mobileCheckoutBar.classList.remove('is-visible');
 
     try {
       const res = await fetch(`/api/products?game=${encodeURIComponent(currentGame)}`);
       products = await res.json();
       renderProducts();
     } catch (err) {
-      productGrid.innerHTML = '<p class="loading-text">Gagal memuat paket. Refresh halaman.</p>';
+      productGrid.innerHTML = '<p class="loading-text">Gagal memuat paket. Silakan refresh halaman.</p>';
     }
   }
 
@@ -282,11 +303,8 @@
       const res = await fetch('/api/products/games');
       const available = await res.json();
       if (Array.isArray(available) && available.length) games = available;
-    } catch (err) {
-      // Kalau gagal ambil daftar game, tetap fallback ke Mobile Legends saja.
-    }
+    } catch (err) {}
 
-    // Urutkan sesuai urutan definisi di GAME_CONFIG, abaikan game yang belum dikenal frontend.
     const ordered = Object.keys(GAME_CONFIG).filter((g) => games.includes(g));
     const finalGames = ordered.length ? ordered : ['mobile-legends'];
 
@@ -306,6 +324,58 @@
     loadProducts();
   }
 
+  // Filter Tabs Event
+  if (categoryTabs) {
+    categoryTabs.querySelectorAll('.category-tab').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        categoryTabs.querySelectorAll('.category-tab').forEach((b) => b.classList.remove('is-active'));
+        btn.classList.add('is-active');
+        currentFilter = btn.dataset.cat;
+        renderProducts();
+      });
+    });
+  }
+
+  // Search input filter
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderProducts();
+    });
+  }
+
+  // Mobile CTA Button (Scrolls to step 4)
+  if (mobileCtaBtn) {
+    mobileCtaBtn.addEventListener('click', () => {
+      document.querySelector('.sidebar-panel').scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+
+  // FAQ Accordion
+  document.querySelectorAll('.faq-question').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const item = btn.parentElement;
+      item.classList.toggle('is-open');
+    });
+  });
+
+  // Rotating Live Transaction Ticker
+  const SAMPLE_ORDERS = [
+    { id: '6028****', item: '278 Diamonds', sec: '3 detik lalu' },
+    { id: '1572****', item: 'Weekly Diamond Pass', sec: '8 detik lalu' },
+    { id: '8491****', item: '568 Diamonds', sec: '14 detik lalu' },
+    { id: '2093****', item: '716 Diamonds', sec: '21 detik lalu' },
+    { id: '7412****', item: '1000 Diamonds (Double Bonus)', sec: '32 detik lalu' },
+    { id: '3910****', item: '2010 Diamonds', sec: '45 detik lalu' },
+  ];
+  let tickerIdx = 0;
+  setInterval(() => {
+    if (!tickerText) return;
+    tickerIdx = (tickerIdx + 1) % SAMPLE_ORDERS.length;
+    const cur = SAMPLE_ORDERS[tickerIdx];
+    tickerText.innerHTML = `Akun <strong>${cur.id}</strong> baru saja membeli <span class="hi-cyan">${cur.item}</span> · <span style="color:var(--success)">Sukses Terkirim</span> (${cur.sec})`;
+  }, 4500);
+
   function showError(message) {
     errorText.textContent = message;
     errorText.hidden = false;
@@ -315,6 +385,7 @@
     errorText.hidden = true;
   }
 
+  // FORM SUBMIT
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError();
@@ -322,18 +393,17 @@
     const game_user_id = document.getElementById('game_user_id').value.trim();
     const game_zone_id = document.getElementById('game_zone_id').value.trim();
     const contact = document.getElementById('contact').value.trim();
-
     const cfg = GAME_CONFIG[currentGame];
 
     if (!selectedProductId) return showError('Pilih paket diamond terlebih dahulu.');
     if (!game_user_id) return showError(`${cfg.userLabel} wajib diisi.`);
-    if (cfg.needsZone && !game_zone_id) return showError('Zone ID wajib diisi.');
-    if (!idIsValid) return showError('ID tidak ditemukan. Periksa kembali User ID & Zone ID.');
-    if (!contact) return showError('Email wajib diisi.');
+    if (cfg.needsZone && !game_zone_id) return showError('Zone / Server ID wajib diisi.');
+    if (!idIsValid) return showError('ID akun tidak ditemukan. Periksa kembali User ID & Server ID.');
+    if (!contact) return showError('Email / WhatsApp wajib diisi.');
 
     payButton.disabled = true;
     const originalLabel = payLabel.textContent;
-    payLabel.textContent = 'Memproses…';
+    payLabel.textContent = 'Memproses Pesanan…';
 
     try {
       const res = await fetch('/api/orders', {
@@ -356,14 +426,11 @@
         return;
       }
 
-      // PAYMENT_METHOD=qris_manual di server -> tidak ada Snap token, langsung
-      // arahkan ke halaman status yang akan menampilkan QRIS statis untuk dibayar.
       if (data.manual_qris) {
         window.location.href = `/status.html?order_id=${data.order_id}`;
         return;
       }
 
-      // Buka popup pembayaran Midtrans Snap
       if (window.snap) {
         window.snap.pay(data.snap_token, {
           onSuccess: () => (window.location.href = `/status.html?order_id=${data.order_id}`),
@@ -375,7 +442,6 @@
           },
         });
       } else {
-        // Fallback jika script Snap gagal dimuat
         window.location.href = data.redirect_url;
       }
     } catch (err) {
@@ -385,5 +451,31 @@
     }
   });
 
+  async function initMidtransConfig() {
+    try {
+      const res = await fetch('/api/config');
+      const cfg = await res.json();
+      if (cfg && cfg.midtrans_client_key && cfg.payment_method !== 'qris_manual') {
+        const snapUrl = cfg.is_production
+          ? 'https://app.midtrans.com/snap/snap.js'
+          : 'https://app.sandbox.midtrans.com/snap/snap.js';
+
+        let existingScript = document.getElementById('midtrans-script');
+        if (existingScript) {
+          existingScript.src = snapUrl;
+          existingScript.setAttribute('data-client-key', cfg.midtrans_client_key);
+        } else {
+          const s = document.createElement('script');
+          s.id = 'midtrans-script';
+          s.type = 'text/javascript';
+          s.src = snapUrl;
+          s.setAttribute('data-client-key', cfg.midtrans_client_key);
+          document.body.appendChild(s);
+        }
+      }
+    } catch (err) {}
+  }
+
+  initMidtransConfig();
   initGameSwitcher();
 })();

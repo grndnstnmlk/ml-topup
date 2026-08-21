@@ -3,149 +3,303 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JAGESTORE — Top Up Mobile Legends Instan</title>
+<title>JAGESTORE — Top Up Mobile Legends & Game Instan 24 Jam</title>
+<meta name="description" content="Top Up Diamond Mobile Legends: Bang Bang & Game Favorit Instan 24 Jam Resmi, Termurah, dan Terpercaya di JAGESTORE.">
+<meta name="theme-color" content="#060814">
+<link rel="icon" type="image/png" href="/assets/diamond.png">
+
+<!-- Open Graph / WhatsApp Preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="JAGESTORE — Top Up Mobile Legends Instan 24 Jam">
+<meta property="og:description" content="Isi ulang diamond MLBB, Weekly Diamond Pass & game favorit proses otomatis 24 jam resmi & terpercaya.">
+<meta property="og:image" content="/assets/diamond.png">
+<meta property="og:url" content="https://jagestore.shop/">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JAGESTORE — Top Up Mobile Legends Instan">
+<meta name="twitter:description" content="Isi ulang diamond MLBB & game favorit instan resmi 24 jam.">
+<meta name="twitter:image" content="/assets/diamond.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 
 <div class="grid-overlay" aria-hidden="true"></div>
 
+<!-- TOPBAR -->
 <header class="topbar">
   <div class="wrap topbar-inner">
-    <div class="brand">
-      <img src="/assets/diamond.png" alt="" class="brand-mark">
+    <a href="/" class="brand">
+      <img src="/assets/diamond.png" alt="JAGESTORE" class="brand-mark">
       <span class="brand-name">JAGE<span class="brand-dot">STORE</span></span>
+    </a>
+    
+    <div class="topbar-right">
+      <div class="server-status">
+        <span class="status-dot"></span>
+        <span>Sistem Online 24 Jam</span>
+      </div>
+      <nav class="topbar-links">
+        <a href="#katalog">Katalog Paket</a>
+        <a href="/status.html">Cek Pesanan</a>
+        <a href="https://wa.me/6281295713923?text=Halo%20Admin%20JAGESTORE%2C%20saya%20butuh%20bantuan" target="_blank" rel="noopener" class="btn-nav-cs">
+          💬 Bantuan CS
+        </a>
+      </nav>
     </div>
-    <nav class="topbar-links">
-      <a href="#produk">Paket</a>
-      <a href="#cara">Cara Top Up</a>
-      <a href="/status.html">Cek Pesanan</a>
-      <a href="/terms.html">S&K</a>
-    </nav>
   </div>
 </header>
 
-<main>
-  <!-- HERO -->
-  <section class="hero">
-    <div class="wrap hero-inner">
-      <div class="hero-copy">
-        <p class="eyebrow">TOP UP MOBILE LEGENDS: BANG BANG</p>
-        <img src="/assets/mlbb-logo.png" alt="Mobile Legends: Bang Bang" class="game-logo">
-        <h1>Isi ulang diamond,<br>bukan cari-cari.</h1>
-        <p class="hero-sub">
-          Masukkan ID &amp; server, pilih jumlah diamond, bayar — selesai.
-          Proses otomatis 24 jam, tanpa perlu login akun.
+<main class="wrap">
+  <!-- PROMO HERO BANNER -->
+  <section class="promo-section">
+    <div class="promo-banner">
+      <div class="promo-content">
+        <div class="promo-badge">⚡ TOP UP RESMI &amp; INSTAN</div>
+        <h1 class="promo-title">Top Up Diamond MLBB <span>Super Cepat</span></h1>
+        <p class="promo-desc">
+          Layanan top up Mobile Legends: Bang Bang otomatis 24 jam. Masukkan ID, pilih paket, bayar via QRIS instan — diamond langsung masuk tanpa login akun.
         </p>
       </div>
+      <div class="promo-graphic">
+        <img src="/assets/mlbb-logo.png" alt="Mobile Legends Bang Bang" class="game-badge-img">
+      </div>
+    </div>
 
-      <form class="order-panel" id="order-form">
-        <div class="game-switcher" id="game-switcher" aria-label="Pilih game"></div>
+    <!-- LIVE TRANSACTION TICKER -->
+    <div class="ticker-wrap" id="ticker-wrap">
+      <span class="ticker-tag">🔥 Live Order</span>
+      <div class="ticker-text" id="ticker-text">
+        Akun <strong>6028****</strong> baru saja membeli <span class="hi-cyan">278 Diamonds</span> · <span style="color:var(--success)">Sukses Terkirim</span>
+      </div>
+    </div>
+  </section>
 
-        <div class="order-panel-head">
-          <span class="order-step">01</span>
-          <span>Data Akun</span>
-        </div>
-
-        <div class="field-row">
-          <div class="field">
-            <label for="game_user_id" id="user-id-label">ID</label>
-            <input type="text" id="game_user_id" inputmode="numeric" placeholder="123456789" required>
+  <!-- FORM & BENTO STEPS -->
+  <form id="order-form">
+    <div class="main-layout" id="katalog">
+      
+      <!-- LEFT COLUMN: STEPS 1, 2, 3 -->
+      <div class="steps-container">
+        
+        <!-- STEP 1: DATA AKUN -->
+        <div class="bento-card">
+          <div class="bento-card-head">
+            <span class="step-num">1</span>
+            <div>
+              <h2 class="step-title">Masukkan Data Akun</h2>
+              <p class="step-subtitle">Pilih game dan masukkan ID akun kamu</p>
+            </div>
           </div>
-          <div class="field field-small" id="zone-field">
-            <label for="game_zone_id">Server</label>
-            <input type="text" id="game_zone_id" inputmode="numeric" placeholder="1234">
+
+          <div class="game-switcher" id="game-switcher" aria-label="Pilih game"></div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="game_user_id" id="user-id-label">User ID</label>
+              <input type="text" id="game_user_id" inputmode="numeric" placeholder="Contoh: 602810859" required>
+            </div>
+            <div class="field" id="zone-field">
+              <label for="game_zone_id">Server / Zone ID</label>
+              <input type="text" id="game_zone_id" inputmode="numeric" placeholder="Contoh: 8408">
+            </div>
+          </div>
+
+          <p class="hint-text" id="account-hint">ID dan Server ada di halaman profil dalam game, tepat di bawah foto &amp; nama akunmu.</p>
+
+          <div class="id-check" id="id-check" hidden></div>
+        </div>
+
+        <!-- STEP 2: PILIH PAKET DIAMOND -->
+        <div class="bento-card">
+          <div class="bento-card-head">
+            <span class="step-num">2</span>
+            <div>
+              <h2 class="step-title">Pilih Nominal Diamond</h2>
+              <p class="step-subtitle">Pilih paket diamond atau pass yang kamu inginkan</p>
+            </div>
+          </div>
+
+          <div class="catalog-toolbar">
+            <div class="category-tabs" id="category-tabs">
+              <button type="button" class="category-tab is-active" data-cat="all">💎 Semua Paket</button>
+              <button type="button" class="category-tab" data-cat="weekly_pass">🔥 Weekly Pass</button>
+              <button type="button" class="category-tab" data-cat="first_topup">🎁 Double Diamonds</button>
+              <button type="button" class="category-tab" data-cat="popular">⚡ Populer</button>
+              <button type="button" class="category-tab" data-cat="diamond">💎 Diamond Reguler</button>
+            </div>
+
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="search-packages" placeholder="Cari jumlah diamond (contoh: 278, 568, pass)...">
+            </div>
+          </div>
+
+          <div id="product-grid" class="product-grid" aria-live="polite">
+            <p class="loading-text">Memuat paket produk…</p>
           </div>
         </div>
 
-        <p class="hint" id="account-hint">ID dan Server ada di halaman profil, di bawah nama akunmu di dalam game.</p>
+        <!-- STEP 3: METODE PEMBAYARAN -->
+        <div class="bento-card">
+          <div class="bento-card-head">
+            <span class="step-num">3</span>
+            <div>
+              <h2 class="step-title">Pilih Metode Pembayaran</h2>
+              <p class="step-subtitle">Pembayaran instan langsung diverifikasi otomatis</p>
+            </div>
+          </div>
 
-        <div class="id-check" id="id-check" hidden></div>
-
-        <div class="field">
-          <label for="contact">Email <span class="field-hint">(untuk notifikasi status pesanan)</span></label>
-          <input type="email" id="contact" placeholder="nama@email.com" required>
+          <div class="payment-channel-card">
+            <div class="payment-channel-head">
+              <span class="payment-title">
+                <span>📱 QRIS Instan</span>
+              </span>
+              <span class="badge-instant">⚡ 0% Biaya Admin</span>
+            </div>
+            <div class="payment-logos">
+              <span class="payment-pill highlight">QRIS</span>
+              <span class="payment-pill">DANA</span>
+              <span class="payment-pill">GoPay</span>
+              <span class="payment-pill">OVO</span>
+              <span class="payment-pill">ShopeePay</span>
+              <span class="payment-pill">BCA</span>
+              <span class="payment-pill">BRI</span>
+              <span class="payment-pill">Mandiri</span>
+              <span class="payment-pill">Semua M-Banking</span>
+            </div>
+          </div>
         </div>
 
-        <div class="order-panel-head order-panel-head-spaced">
-          <span class="order-step">02</span>
-          <span>Pilih Paket Diamond</span>
-        </div>
+      </div>
 
-        <div id="product-grid" class="product-grid" aria-live="polite">
-          <p class="loading-text">Memuat paket…</p>
-        </div>
+      <!-- RIGHT COLUMN / STICKY SIDEBAR: STEP 4 RINGKASAN & BELI -->
+      <div class="sidebar-panel">
+        
+        <div class="summary-card">
+          <div class="bento-card-head" style="margin-bottom:12px;">
+            <span class="step-num">4</span>
+            <div>
+              <h3 class="step-title" style="font-size:1.15rem;">Beli Langsung</h3>
+              <p class="step-subtitle">Cek detail dan bayar pesanan</p>
+            </div>
+          </div>
 
-        <div class="checkout-bar">
-          <div class="order-summary" id="order-summary" aria-live="polite">
-            <p class="order-summary-empty">Belum ada item produk yang dipilih.</p>
+          <div class="field" style="margin-bottom:14px;">
+            <label for="contact">Email / WhatsApp <span style="font-size:0.7rem; color:var(--text-muted);">(Bukti Order)</span></label>
+            <input type="email" id="contact" placeholder="nama@email.com" required>
+          </div>
+
+          <div id="order-summary" aria-live="polite">
+            <div class="summary-row">
+              <span>Item Dipilih</span>
+              <span id="sum-item-name" style="color:#fff; font-weight:600;">—</span>
+            </div>
+            <div class="summary-row">
+              <span>Pembayaran</span>
+              <span>QRIS Instan</span>
+            </div>
+            <div class="summary-row total-row">
+              <span>Total Tagihan</span>
+              <span class="summary-price" id="sum-item-price">Rp0</span>
+            </div>
           </div>
 
           <button type="submit" class="cta-pay" id="pay-button" disabled>
             <span id="pay-button-label">Pesan Sekarang</span>
           </button>
+          
           <p class="error-text" id="form-error" hidden></p>
         </div>
-      </form>
+
+      </div>
+
+    </div>
+  </form>
+
+  <!-- TRUST SIGNALS -->
+  <section class="trust-section">
+    <div class="trust-grid">
+      <div class="trust-card">
+        <div class="trust-icon">🛡️</div>
+        <div class="trust-card-title">100% Legal &amp; Aman</div>
+        <p class="trust-card-desc">Diamond resmi terhubung langsung dengan server Moonton.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">⚡</div>
+        <div class="trust-card-title">Proses &lt; 60 Detik</div>
+        <p class="trust-card-desc">Sistem otomatis mengirim diamond sesaat setelah bayar.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">🕐</div>
+        <div class="trust-card-title">Layanan 24 Jam</div>
+        <p class="trust-card-desc">Beli kapan saja tengah malam tetap diproses otomatis.</p>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">💬</div>
+        <div class="trust-card-title">Bantuan CS Responsif</div>
+        <p class="trust-card-desc">Tim kami siap membantu kendala kamu via WhatsApp.</p>
+      </div>
     </div>
   </section>
 
-  <!-- CARA TOP UP -->
-  <section class="how" id="cara">
-    <div class="wrap">
-      <p class="section-eyebrow">TIGA LANGKAH</p>
-      <h2>Cara top up</h2>
-      <div class="how-steps">
-        <div class="how-step">
-          <span class="how-num">01</span>
-          <h3>Masukkan ID</h3>
-          <p>Pilih game, lalu isi ID akun kamu dengan benar (dan Zone ID kalau game-nya butuh).</p>
-        </div>
-        <div class="how-step">
-          <span class="how-num">02</span>
-          <h3>Pilih paket</h3>
-          <p>Tentukan jumlah diamond atau pass yang ingin dibeli.</p>
-        </div>
-        <div class="how-step">
-          <span class="how-num">03</span>
-          <h3>Bayar &amp; selesai</h3>
-          <p>Pilih metode pembayaran, bayar, diamond masuk otomatis ke akun.</p>
+  <!-- FAQ SECTION -->
+  <section class="faq-section">
+    <h2 class="section-title">Pertanyaan Umum (FAQ)</h2>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button type="button" class="faq-question">
+          <span>Bagaimana cara menemukan User ID &amp; Server Mobile Legends?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          Buka game Mobile Legends, klik foto profil akun di pojok kiri atas. Di bawah nama akunmu, terdapat angka seperti <strong>12345678 (1234)</strong>. Angka di luar kurung adalah <strong>User ID</strong>, dan 4 digit di dalam kurung adalah <strong>Server/Zone ID</strong>.
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="trust">
-    <div class="wrap trust-inner">
-      <div class="trust-item">
-        <span class="trust-num">24/7</span>
-        <span class="trust-label">Proses otomatis</span>
+      <div class="faq-item">
+        <button type="button" class="faq-question">
+          <span>Berapa lama diamond akan masuk ke akun?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          Pengiriman diproses secara otomatis oleh sistem server kami dalam waktu 5 hingga 60 detik setelah pembayaran terverifikasi.
+        </div>
       </div>
-      <div class="trust-item">
-        <span class="trust-num">100%</span>
-        <span class="trust-label">Harga resmi</span>
-      </div>
-      <div class="trust-item">
-        <span class="trust-num">&lt;5 mnt</span>
-        <span class="trust-label">Rata-rata pengiriman</span>
+      <div class="faq-item">
+        <button type="button" class="faq-question">
+          <span>Apakah aman top up di JAGESTORE?</span>
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          Sangat aman. Kami tidak meminta kata sandi / login akun sama sekali. Diamond diisi langsung menggunakan ID resmi tanpa risiko banned.
+        </div>
       </div>
     </div>
   </section>
 </main>
 
+<!-- MOBILE FLOATING CHECKOUT BAR -->
+<div class="mobile-checkout-bar" id="mobile-checkout-bar">
+  <div class="mobile-checkout-inner">
+    <div>
+      <div class="mobile-summary-name" id="mobile-item-name">Pilih Paket</div>
+      <div class="mobile-summary-price" id="mobile-item-price">Rp0</div>
+    </div>
+    <button type="button" class="mobile-cta-btn" id="mobile-cta-btn">Beli ⚡</button>
+  </div>
+</div>
+
 <footer class="site-footer">
   <div class="wrap">
-    <p>JAGESTORE bukan situs resmi Moonton. Semua merek dagang milik pemiliknya masing-masing. · <a href="/terms.html" style="color:#5b6488;">Syarat &amp; Ketentuan</a></p>
+    <p>© 2026 JAGESTORE. Semua merek dagang Mobile Legends: Bang Bang &amp; Moonton adalah milik pemiliknya masing-masing. · <a href="/terms.html">Syarat &amp; Ketentuan</a> · <a href="/status.html">Cek Pesanan</a></p>
   </div>
 </footer>
 
-<!-- Midtrans Snap.js -->
-<script id="midtrans-script" type="text/javascript"
-  src="https://app.sandbox.midtrans.com/snap/snap.js"
-  data-client-key="SB-Mid-client-xxxxxxxxxxxxxxxxxxxx"></script>
-
+<!-- Midtrans Snap.js (Dinamis dari /api/config) -->
+<script id="midtrans-script" type="text/javascript"></script>
 <script src="/js/app.js"></script>
 </body>
 </html>

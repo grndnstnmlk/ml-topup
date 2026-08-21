@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 
+const rateLimit = require('express-rate-limit');
+
 const db = require('./db');
 const productsRouter = require('./routes/products');
 const ordersRouter = require('./routes/orders');
@@ -15,6 +17,9 @@ const { deleteStalePendingOrders } = require('./utils/cleanup');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Percayai reverse proxy Railway / Cloudflare agar rate limiter membaca IP asli
+app.set('trust proxy', 1);
+
 app.use(cors());
 // verify: simpan raw body mentah, dibutuhkan untuk cek signature webhook Digiflazz
 app.use(
@@ -26,11 +31,24 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true }));
 
+// --- RATE LIMITERS (Proteksi Anti-Spam / Anti-Abuse) ---
+const checkIdLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 menit
+  max: 45, // maks 45 request per menit per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { valid: false, error: 'Terlalu banyak permintaan cek ID. Coba lagi dalam 1 menit.' },
+});
+
+const orderLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 menit
+  max: 25, // maks 25 order per 5 menit per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Terlalu banyak pembuatan pesanan. Coba lagi dalam beberapa saat.' },
+});
+
 // Auto-seed produk kalau tabel masih kosong, ATAU kalau FORCE_RESEED=true diset
-// (dipakai kalau katalog produk di db-seed.js berubah — harga baru, SKU baru, dsb).
-// Seed sekarang bersifat UPSERT (update kalau SKU sudah ada, insert kalau baru),
-// TIDAK menghapus produk lama — jadi aman dijalankan berkali-kali walau sudah
-// ada order asli yang mereferensikan product_id lama.
 const count = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
 if (count === 0) {
   console.log('Database kosong, menjalankan seed produk otomatis...');
@@ -40,15 +58,23 @@ if (count === 0) {
   require('./db-seed');
 }
 
+// Endpoint konfigurasi publik untuk frontend (sinkron otomatis dengan .env)
+app.get('/api/config', (req, res) => {
+  res.json({
+    midtrans_client_key: process.env.MIDTRANS_CLIENT_KEY || '',
+    is_production: process.env.MIDTRANS_IS_PRODUCTION === 'true',
+    payment_method: process.env.PAYMENT_METHOD || 'midtrans',
+  });
+});
+
 app.use('/api/products', productsRouter);
-app.use('/api/orders', ordersRouter);
+app.use('/api/orders', orderLimiter, ordersRouter);
 app.use('/api/webhook', webhookRouter);
 app.use('/api/digiflazz-webhook', digiflazzWebhookRouter);
-app.use('/api/check-id', checkIdRouter);
+app.use('/api/check-id', checkIdLimiter, checkIdRouter);
 app.use('/api/admin', adminRouter);
 
 // Halaman admin.html digerbang lewat auth yang sama dengan /api/admin
-// (didaftarkan sebelum express.static supaya tidak ke-serve tanpa login)
 app.get('/admin.html', requireAdminAuth, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
