@@ -1135,7 +1135,16 @@ body {
   .field-row {
     grid-template-columns: 1fr;
   }
+
+  .trust-grid {
+    grid-template-columns: 1fr;
+  }
   
+  .topbar-links {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    STATUS / INVOICE TRACKER PAGE
    ========================================================================== */

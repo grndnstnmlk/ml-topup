@@ -117,6 +117,8 @@
       const shareUrl = `${window.location.origin}/status.html?order_id=${encodeURIComponent(data.order_id)}`;
       const isPaid = data.status === 'paid';
       const isPending = data.status === 'pending';
+      const isDelivered = data.delivery_status === 'terkirim';
+      const isProcessing = isPaid && !isDelivered && data.delivery_status !== 'gagal';
 
       card.innerHTML = `
         <div class="status-top-meta">
@@ -141,13 +143,25 @@
           </div>
           <div class="stepper-step ${isPaid ? 'is-done' : (isPending ? 'is-active' : '')}">
             <span class="stepper-dot">${isPaid ? '✓' : '2'}</span>
-            <span>2. Pembayaran</span>
+            <span>2. Verifikasi Bayar</span>
           </div>
-          <div class="stepper-step ${isPaid ? 'is-done' : ''}">
-            <span class="stepper-dot">${isPaid ? '✓' : '3'}</span>
+          <div class="stepper-step ${isDelivered ? 'is-done' : (isProcessing ? 'is-active' : '')}">
+            <span class="stepper-dot">${isDelivered ? '✓' : '3'}</span>
             <span>3. Pengiriman Diamond</span>
           </div>
         </div>
+
+        <!-- SN / SERIAL NUMBER BOX (IF SUCCESS) -->
+        ${data.delivery_sn ? `
+          <div style="background:rgba(0,230,153,0.08); border:1px solid rgba(0,230,153,0.35); border-radius:12px; padding:14px 16px; margin: 16px 0; display:flex; flex-direction:column; gap:4px; box-shadow:0 0 16px var(--success-glow);">
+            <div style="font-size:0.75rem; font-weight:700; color:var(--success); text-transform:uppercase; letter-spacing:0.04em;">
+              ✓ Bukti Pengiriman Resmi Moonton (SN)
+            </div>
+            <div style="font-family:var(--font-mono); font-size:0.95rem; color:#fff; word-break:break-all; font-weight:600;">
+              ${data.delivery_sn}
+            </div>
+          </div>
+        ` : ''}
 
         <!-- QRIS MANUAL SECTION (IF PENDING) -->
         ${isPending && data.payment_type === 'qris-manual' ? `
@@ -191,12 +205,6 @@
             <span>Metode Pembayaran</span>
             <span>${data.payment_type ? data.payment_type.toUpperCase() : 'QRIS'}</span>
           </div>
-          ${data.delivery_sn ? `
-            <div class="status-row" style="color:var(--success)">
-              <span>Nomor Seri (SN)</span>
-              <span style="color:var(--success); font-family:var(--font-mono);">${data.delivery_sn}</span>
-            </div>
-          ` : ''}
           <div class="status-row highlight-price">
             <span>Total Pembayaran</span>
             <span>${formatRupiah(data.price)}</span>
