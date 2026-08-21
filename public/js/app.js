@@ -89,8 +89,8 @@
   let checkIdTimer = null;
 
   async function checkPlayerId() {
-    // Cek nickname (Velixs) baru mendukung Mobile Legends untuk sekarang.
-    if (currentGame !== 'mobile-legends') {
+    // Cek nickname mendukung Mobile Legends & Free Fire
+    if (currentGame !== 'mobile-legends' && currentGame !== 'free-fire') {
       hideIdCheck();
       return;
     }
@@ -98,7 +98,11 @@
     const userId = userIdInput.value.trim();
     const zoneId = zoneIdInput.value.trim();
 
-    if (!userId || !zoneId) {
+    if (!userId) {
+      hideIdCheck();
+      return;
+    }
+    if (currentGame === 'mobile-legends' && !zoneId) {
       hideIdCheck();
       return;
     }
@@ -109,7 +113,11 @@
       const res = await fetch('/api/check-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ game_user_id: userId, game_zone_id: zoneId }),
+        body: JSON.stringify({
+          game: currentGame,
+          game_user_id: userId,
+          game_zone_id: zoneId || undefined,
+        }),
       });
       const data = await res.json();
 

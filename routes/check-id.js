@@ -1,44 +1,57 @@
 const express = require('express');
 const router = express.Router();
 
-// POST /api/check-id - cek nickname akun ML berdasarkan User ID + Zone ID.
-// API key Velixs disimpan di server (.env), tidak pernah dikirim ke browser.
+// POST /api/check-id - cek nickname akun ML/Game via layanan publik
 router.post('/', async (req, res) => {
-  const { game_user_id, game_zone_id } = req.body;
+  const { game_user_id, game_zone_id, game = 'mobile-legends' } = req.body;
 
-  if (!game_user_id || !game_zone_id) {
-    return res.status(400).json({ valid: false, error: 'User ID dan Zone ID wajib diisi' });
+  if (!game_user_id) {
+    return res.status(400).json({ valid: false, error: 'User ID wajib diisi' });
   }
 
-  const apiKey = process.env.VELIXS_API_KEY;
-  if (!apiKey) {
-    // Fitur belum dikonfigurasi di server ini — jangan blokir alur beli,
-    // cukup bilang fitur cek nickname tidak tersedia.
-    return res.json({ valid: false, unavailable: true });
+  // Untuk Mobile Legends, zone ID wajib ada
+  if (game === 'mobile-legends' && !game_zone_id) {
+    return res.status(400).json({ valid: false, error: 'Zone ID wajib diisi untuk Mobile Legends' });
   }
 
   try {
-    const response = await fetch('https://api.velixs.com/idgames-checker', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        game: 'ml',
-        id: game_user_id,
-        zoneid: game_zone_id,
-        apikey: apiKey,
-      }),
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000); // 6 detik timeout
+
+    let url = '';
+    if (game === 'mobile-legends') {
+      url = `https://api.isan.eu.org/nickname/ml?id=${encodeURIComponent(game_user_id)}&server=${encodeURIComponent(game_zone_id)}`;
+    } else if (game === 'free-fire') {
+      url = `https://api.isan.eu.org/nickname/ff?id=${encodeURIComponent(game_user_id)}`;
+    } else {
+      // Game lain belum didukung cek nickname publik — lewati tanpa memblokir
+      return res.json({ valid: false, unavailable: true });
+    }
+
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+      },
     });
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      // Jika status HTTP 4xx/5xx (misal ID tidak ditemukan atau service sedang gangguan)
+      return res.json({ valid: false, message: 'ID tidak ditemukan' });
+    }
 
     const data = await response.json();
 
-    if (data.status && data.data && data.data.username) {
-      return res.json({ valid: true, username: data.data.username });
+    if (data && data.success && data.name) {
+      return res.json({ valid: true, username: data.name });
     }
 
-    return res.json({ valid: false });
+    return res.json({ valid: false, message: 'ID tidak ditemukan' });
   } catch (err) {
-    console.error('Gagal cek nickname via Velixs:', err.message);
-    // Kalau API cek nickname sedang bermasalah, jangan halangi orang checkout.
+    console.error('[check-id] Gagal cek nickname:', err.message);
+    // Jika koneksi timeout atau API publik sedang offline, jangan blokir alur checkout
     return res.json({ valid: false, unavailable: true });
   }
 });
