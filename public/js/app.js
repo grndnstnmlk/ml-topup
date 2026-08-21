@@ -359,22 +359,22 @@
     });
   });
 
-  // Rotating Live Transaction Ticker
+  // Rotating Live Transaction Ticker (Ringkas & pas di layar HP)
   const SAMPLE_ORDERS = [
-    { id: '6028****', item: '278 Diamonds', sec: '3 detik lalu' },
-    { id: '1572****', item: 'Weekly Diamond Pass', sec: '8 detik lalu' },
-    { id: '8491****', item: '568 Diamonds', sec: '14 detik lalu' },
-    { id: '2093****', item: '716 Diamonds', sec: '21 detik lalu' },
-    { id: '7412****', item: '1000 Diamonds (Double Bonus)', sec: '32 detik lalu' },
-    { id: '3910****', item: '2010 Diamonds', sec: '45 detik lalu' },
+    { id: '6028****', item: '278 💎' },
+    { id: '1572****', item: 'Weekly Pass' },
+    { id: '8491****', item: '568 💎' },
+    { id: '2093****', item: '716 💎' },
+    { id: '7412****', item: '1000 💎 (2x)' },
+    { id: '3910****', item: '2010 💎' },
   ];
   let tickerIdx = 0;
   setInterval(() => {
     if (!tickerText) return;
     tickerIdx = (tickerIdx + 1) % SAMPLE_ORDERS.length;
     const cur = SAMPLE_ORDERS[tickerIdx];
-    tickerText.innerHTML = `Akun <strong>${cur.id}</strong> baru saja membeli <span class="hi-cyan">${cur.item}</span> · <span style="color:var(--success)">Sukses Terkirim</span> (${cur.sec})`;
-  }, 4500);
+    tickerText.innerHTML = `Akun <strong>${cur.id}</strong> beli <span class="hi-cyan">${cur.item}</span> · <span style="color:var(--success)">Sukses Terkirim</span>`;
+  }, 4000);
 
   function showError(message) {
     errorText.textContent = message;
