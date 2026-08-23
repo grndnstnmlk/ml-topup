@@ -3,35 +3,36 @@
    ========================================================================== */
 
 :root {
-  /* Color Palette */
-  --bg-void: #050711;
-  --bg-base: #080b18;
-  --bg-card: #0e1326;
-  --bg-card-hover: #131a33;
-  --bg-panel-raised: #141b36;
-  --bg-glass: rgba(14, 19, 38, 0.75);
+  /* Color Palette — Stitch Semantic Specification */
+  --bg-void: #090d16;
+  --bg-base: #0c111e;
+  --bg-card: #121826;
+  --bg-card-hover: #162033;
+  --bg-panel-raised: #182236;
+  --bg-glass: rgba(18, 24, 38, 0.85);
   
-  --line: rgba(255, 255, 255, 0.08);
-  --line-bright: rgba(47, 224, 255, 0.35);
-  --line-glow: rgba(47, 224, 255, 0.6);
+  --line: rgba(148, 163, 184, 0.12);
+  --line-bright: rgba(2, 132, 199, 0.45);
+  --line-glow: rgba(2, 132, 199, 0.65);
   
-  --cyan: #2fe0ff;
-  --cyan-glow: rgba(47, 224, 255, 0.3);
-  --magenta: #ff3377;
-  --purple: #9d4edd;
-  --purple-glow: rgba(157, 78, 221, 0.25);
-  --gold: #ffd13b;
-  --gold-glow: rgba(255, 209, 59, 0.25);
-  --success: #00e699;
-  --success-glow: rgba(0, 230, 153, 0.2);
+  --cyan: #0284c7;
+  --cyan-light: #38bdf8;
+  --cyan-glow: rgba(2, 132, 199, 0.25);
+  --magenta: #f43f5e;
+  --purple: #8b5cf6;
+  --purple-glow: rgba(139, 92, 246, 0.2);
+  --gold: #f59e0b;
+  --gold-glow: rgba(245, 158, 11, 0.2);
+  --success: #10b981;
+  --success-glow: rgba(16, 185, 129, 0.2);
   
-  --text-primary: #f0f4fc;
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   
   /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: 'Rajdhani', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Outfit', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   
   /* Transitions */
