@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Cyan Neon Gradients -->
+    <linearGradient id="fullCyan1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="45%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="fullCyan2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="60%" stop-color="#0369a1"/>
+      <stop offset="100%" stop-color="#075985"/>
+    </linearGradient>
+
+    <linearGradient id="fullGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <linearGradient id="textSilver" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cbd5e1"/>
+    </linearGradient>
+
+    <filter id="fullGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- ================= LEFT EMBLEM ICON ================= -->
+  <g transform="translate(20, 10) scale(0.39)">
+    <!-- Container -->
+    <rect width="512" height="512" rx="108" fill="#0c111e" stroke="rgba(56, 189, 248, 0.3)" stroke-width="4"/>
+    <circle cx="256" cy="256" r="140" fill="#0284c7" opacity="0.25" filter="blur(30px)"/>
+
+    <!-- Diamond & 'J' Crown -->
+    <polygon points="256,76 384,180 256,180" fill="url(#fullCyan1)"/>
+    <polygon points="256,76 128,180 256,180" fill="url(#fullCyan2)"/>
+    
+    <path d="M 128,180 L 210,180 L 256,180 L 256,236 L 178,236 Z" fill="url(#fullCyan2)"/>
+    <path d="M 256,180 L 384,180 L 384,310 L 330,360 L 256,310 Z" fill="url(#fullCyan1)" filter="url(#fullGlow)"/>
+    <path d="M 256,180 L 330,180 L 330,335 L 256,285 Z" fill="#0369a1"/>
+    
+    <!-- J Curve -->
+    <path d="M 330,360 L 384,310 L 384,340 C 384,410 320,444 240,444 C 160,444 116,396 116,336 L 176,336 C 176,368 200,392 240,392 C 278,392 312,374 330,350 Z" fill="url(#fullCyan1)"/>
+
+    <!-- Gold Core -->
+    <polygon points="256,206 294,256 256,306 218,256" fill="url(#fullGold)" filter="url(#fullGlow)"/>
+    
+    <!-- Spark Star -->
+    <polygon points="256,140 266,170 286,174 268,188 274,214 256,194 238,214 244,188 226,174 246,170" fill="#ffffff" filter="url(#fullGlow)"/>
+  </g>
+
+  <!-- ================= RIGHT WORDMARK & TYPOGRAPHY ================= -->
+  <g transform="translate(250, 0)">
+    <!-- Primary Brand Wordmark -->
+    <text x="0" y="125" font-family="'Outfit', 'Plus Jakarta Sans', sans-serif" font-size="86" font-weight="900" letter-spacing="4" fill="url(#textSilver)">
+      JAGE<tspan fill="url(#fullCyan1)" filter="url(#fullGlow)">STORE</tspan>
+    </text>
+
+    <!-- Subtitle / Brand Descriptor Tagline -->
+    <g transform="translate(4, 162)">
+      <!-- Cyber pill badge -->
+      <rect x="0" y="-18" width="130" height="24" rx="6" fill="rgba(245, 158, 11, 0.15)" stroke="rgba(245, 158, 11, 0.4)" stroke-width="1.5"/>
+      <text x="10" y="-2" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" fill="#fbbf24" letter-spacing="1.5">⚡ TOP UP 24H</text>
+      
+      <text x="146" y="-2" font-family="'Plus Jakarta Sans', sans-serif" font-size="15" font-weight="600" fill="#94a3b8" letter-spacing="3.5">
+        OFFICIAL ESPORTS STORE
+      </text>
+    </g>
+
+    <!-- Decorative Tech Dot Matrix Line -->
+    <line x1="0" y1="184" x2="620" y2="184" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <circle cx="620" cy="184" r="3" fill="#38bdf8"/>
+  </g>
+</svg>

@@ -1,0 +1,97 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%" fill="none">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#141c2e"/>
+      <stop offset="60%" stop-color="#0b101d"/>
+      <stop offset="100%" stop-color="#060912"/>
+    </radialGradient>
+
+    <!-- Cyan Neon Gradients -->
+    <linearGradient id="cyanGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="45%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+
+    <linearGradient id="cyanGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="60%" stop-color="#0369a1"/>
+      <stop offset="100%" stop-color="#075985"/>
+    </linearGradient>
+
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </linearGradient>
+
+    <linearGradient id="facetHighlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#e0f2fe" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.05"/>
+    </linearGradient>
+
+    <!-- Glow Filters -->
+    <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0284c7" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Base Rounded Hex Shield Container -->
+  <rect width="512" height="512" rx="108" fill="url(#bgGrad)"/>
+  
+  <!-- Outer Tech Border Ring -->
+  <rect x="16" y="16" width="480" height="480" rx="96" stroke="rgba(56, 189, 248, 0.22)" stroke-width="2" fill="none"/>
+  
+  <!-- Tech Accent Corners -->
+  <path d="M 48 96 L 48 48 L 96 48" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 464 96 L 464 48 L 416 48" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 48 416 L 48 464 L 96 464" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M 464 416 L 464 464 L 416 464" stroke="#38bdf8" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.7"/>
+
+  <!-- Glowing Ambient Aura -->
+  <circle cx="256" cy="256" r="140" fill="#0284c7" opacity="0.22" filter="blur(40px)"/>
+
+  <!-- ================= LOGO EMBLEM: THE "J" DIAMOND CYPHER ================= -->
+  <g filter="url(#subtleShadow)">
+    
+    <!-- Outer Diamond Top Facet -->
+    <polygon points="256,76 384,180 256,180" fill="url(#cyanGrad1)" opacity="0.95"/>
+    <polygon points="256,76 128,180 256,180" fill="url(#cyanGrad2)" opacity="0.85"/>
+
+    <!-- Center Top Shine -->
+    <polygon points="256,76 300,180 256,180" fill="url(#facetHighlight)"/>
+
+    <!-- Left Wing Crown (Letter J Top bar) -->
+    <path d="M 128,180 L 210,180 L 256,180 L 256,236 L 178,236 Z" fill="url(#cyanGrad2)"/>
+    
+    <!-- Main Right Vertical Spine of 'J' (Faceted Crystal Blade) -->
+    <path d="M 256,180 L 384,180 L 384,310 L 330,360 L 256,310 Z" fill="url(#cyanGrad1)" filter="url(#neonGlow)"/>
+    
+    <!-- Inner Blade Facet (High Contrast) -->
+    <path d="M 256,180 L 330,180 L 330,335 L 256,285 Z" fill="#0369a1"/>
+    
+    <!-- Swooping J Bottom Curve (Esports Hook) -->
+    <path d="M 330,360 L 384,310 L 384,340 C 384,410 320,444 240,444 C 160,444 116,396 116,336 L 176,336 C 176,368 200,392 240,392 C 278,392 312,374 330,350 Z" fill="url(#cyanGrad1)"/>
+
+    <!-- Highlight Reflection on J Curve -->
+    <path d="M 176,336 C 176,368 200,392 240,392 C 265,392 292,382 310,364 L 296,350 C 280,362 260,370 240,370 C 212,370 196,352 196,336 Z" fill="url(#facetHighlight)"/>
+
+    <!-- Center Core Energy Crystal (Gold Accent) -->
+    <polygon points="256,206 294,256 256,306 218,256" fill="url(#goldGrad)" filter="url(#neonGlow)"/>
+    <polygon points="256,206 294,256 256,256" fill="#fef08a" opacity="0.8"/>
+
+    <!-- Lightning Spark Slash Apex -->
+    <polygon points="256,140 266,170 286,174 268,188 274,214 256,194 238,214 244,188 226,174 246,170" fill="#ffffff" filter="url(#neonGlow)" opacity="0.95"/>
+  </g>
+</svg>
