@@ -844,16 +844,42 @@
     });
   }
 
-  /* ==========================================================================
-     9. FORM SUBMIT & CHECKOUT
-     ========================================================================== */
-  function showError(message) {
-    errorText.textContent = message;
+  function playErrorSound() {
+    if (!sfxEnabled) return;
+    try {
+      initAudioContext();
+      if (!audioCtx) return;
+      playTone(180, 'sawtooth', 0.25, 0.08);
+    } catch (e) {}
+  }
+
+  function triggerShake(el) {
+    if (!el) return;
+    el.classList.remove('field-shake');
+    void el.offsetWidth; // trigger reflow
+    el.classList.add('field-shake');
+    setTimeout(() => {
+      el.classList.remove('field-shake');
+    }, 650);
+  }
+
+  function showError(message, targetEl = null) {
+    errorText.innerHTML = `<span>⚠️</span> <span>${message}</span>`;
     errorText.hidden = false;
+    playErrorSound();
+
+    if (targetEl) {
+      triggerShake(targetEl);
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof targetEl.focus === 'function') {
+        setTimeout(() => targetEl.focus(), 300);
+      }
+    }
   }
 
   function clearError() {
     errorText.hidden = true;
+    errorText.textContent = '';
   }
 
   form.addEventListener('submit', async (e) => {
@@ -865,11 +891,21 @@
     const contact = document.getElementById('contact').value.trim();
     const cfg = GAME_CONFIG[currentGame];
 
-    if (!selectedProductId) return showError('Pilih paket diamond terlebih dahulu.');
-    if (!game_user_id) return showError(`${cfg.userLabel} wajib diisi.`);
-    if (cfg.needsZone && !game_zone_id) return showError('Zone / Server ID wajib diisi.');
-    if (!idIsValid) return showError('ID akun tidak ditemukan. Periksa kembali User ID & Server ID.');
-    if (!contact) return showError('Email / WhatsApp wajib diisi.');
+    if (!selectedProductId) {
+      return showError('Pilih paket diamond terlebih dahulu.', document.getElementById('product-grid') || document.querySelector('.steps-container'));
+    }
+    if (!game_user_id) {
+      return showError(`${cfg.userLabel} wajib diisi.`, userIdInput);
+    }
+    if (cfg.needsZone && !game_zone_id) {
+      return showError('Zone / Server ID wajib diisi.', zoneIdInput);
+    }
+    if (!idIsValid) {
+      return showError('ID akun tidak ditemukan. Periksa kembali User ID & Server ID.', idCheckBox.hidden ? userIdInput : idCheckBox);
+    }
+    if (!contact) {
+      return showError('Email / WhatsApp wajib diisi.', document.getElementById('contact'));
+    }
 
     payButton.disabled = true;
     const originalLabel = payLabel.textContent;
