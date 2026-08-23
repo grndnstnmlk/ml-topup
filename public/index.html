@@ -28,6 +28,7 @@
 </head>
 <body>
 
+<canvas id="mana-particles" class="mana-particles-canvas" aria-hidden="true"></canvas>
 <div class="grid-overlay" aria-hidden="true"></div>
 
 <!-- TOPBAR -->
@@ -39,6 +40,10 @@
     </a>
     
     <div class="topbar-right">
+      <button type="button" class="btn-sfx-toggle" id="sfx-toggle" aria-label="Toggle Sound Effects" title="Suara Efek">
+        <span class="sfx-icon">🔊</span>
+        <span class="sfx-text">SFX: ON</span>
+      </button>
       <div class="server-status">
         <span class="status-dot"></span>
         <span>Sistem Online 24 Jam</span>
@@ -55,19 +60,79 @@
 </header>
 
 <main class="wrap">
-  <!-- PROMO HERO BANNER -->
+  <!-- PROMO HERO BANNER & MLBB HERO SPOTLIGHT -->
   <section class="promo-section">
-    <div class="promo-banner">
+    <div class="promo-banner" id="promo-banner">
+      
+      <!-- Left: Promo Info & Hero Selector Chips -->
       <div class="promo-content">
         <div class="promo-badge">⚡ TOP UP RESMI &amp; INSTAN</div>
         <h1 class="promo-title">Top Up Diamond MLBB <span>Super Cepat</span></h1>
         <p class="promo-desc">
           Layanan top up Mobile Legends: Bang Bang otomatis 24 jam. Masukkan ID, pilih paket, bayar via QRIS instan — diamond langsung masuk tanpa login akun.
         </p>
+
+        <!-- MLBB Heroes Quick Selector -->
+        <div class="hero-selector-wrapper">
+          <div class="hero-selector-label">🔥 Hero Favorit Land of Dawn:</div>
+          <div class="hero-selector-bar" id="hero-selector-bar">
+            <!-- Dynamically populated / fallback hero chips -->
+            <button type="button" class="hero-chip is-active" data-hero="gusion">
+              <img src="/assets/heroes/gusion.png" alt="Gusion" class="hero-chip-img">
+              <span>Gusion</span>
+            </button>
+            <button type="button" class="hero-chip" data-hero="fanny">
+              <img src="/assets/heroes/fanny.png" alt="Fanny" class="hero-chip-img">
+              <span>Fanny</span>
+            </button>
+            <button type="button" class="hero-chip" data-hero="ling">
+              <img src="/assets/heroes/ling.png" alt="Ling" class="hero-chip-img">
+              <span>Ling</span>
+            </button>
+            <button type="button" class="hero-chip" data-hero="chou">
+              <img src="/assets/heroes/chou.png" alt="Chou" class="hero-chip-img">
+              <span>Chou</span>
+            </button>
+            <button type="button" class="hero-chip" data-hero="granger">
+              <img src="/assets/heroes/granger.png" alt="Granger" class="hero-chip-img">
+              <span>Granger</span>
+            </button>
+            <button type="button" class="hero-chip" data-hero="zhuxin">
+              <img src="/assets/heroes/zhuxin.png" alt="Zhuxin" class="hero-chip-img">
+              <span>Zhuxin</span>
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="promo-graphic">
-        <img src="/assets/mlbb-logo.png" alt="Mobile Legends Bang Bang" class="game-badge-img">
+
+      <!-- Right: Interactive Dynamic Hero Spotlight Showcase Deck -->
+      <div class="hero-showcase-deck" id="hero-showcase-deck">
+        <div class="hero-spotlight-card" id="hero-spotlight-card">
+          <div class="hero-aura-glow" id="hero-aura-glow"></div>
+          <div class="hero-aura-ring"></div>
+          
+          <div class="hero-avatar-container">
+            <img src="/assets/heroes/gusion.png" alt="Gusion" class="hero-avatar-img" id="hero-avatar-img">
+            <div class="hero-floating-energy"></div>
+          </div>
+
+          <div class="hero-card-meta">
+            <div class="hero-role-pill" id="hero-role-pill">⚡ Assassin / Mage</div>
+            <div class="hero-card-name" id="hero-card-name">Gusion</div>
+            <div class="hero-card-title" id="hero-card-title">Holy Blade</div>
+          </div>
+
+          <div class="hero-quote-box" id="hero-quote-box">
+            <span class="quote-icon">❝</span>
+            <span class="quote-text" id="hero-quote-text">Magic lies in the mind!</span>
+          </div>
+
+          <div class="hero-mlbb-stamp">
+            <img src="/assets/mlbb-logo.png" alt="MLBB Official" class="hero-mlbb-logo-mini">
+          </div>
+        </div>
       </div>
+
     </div>
 
     <!-- LIVE TRANSACTION TICKER -->
@@ -330,6 +395,17 @@
     <p>© 2026 JAGESTORE. Semua merek dagang Mobile Legends: Bang Bang &amp; Moonton adalah milik pemiliknya masing-masing. · <a href="/terms.html">Syarat &amp; Ketentuan</a> · <a href="/status.html">Cek Pesanan</a></p>
   </div>
 </footer>
+
+<!-- MLBB HERO ASSISTANT MASCOT WIDGET -->
+<div class="hero-mascot-widget" id="hero-mascot-widget" aria-live="polite">
+  <div class="mascot-bubble" id="mascot-bubble">
+    <span class="mascot-text" id="mascot-text">Top up otomatis masuk dalam 10 detik! ⚡</span>
+  </div>
+  <button type="button" class="mascot-avatar-btn" id="mascot-btn" title="Hero Assistant" aria-label="Hero Assistant">
+    <img src="/assets/heroes/layla.png" alt="Hero Assistant" class="mascot-img" id="mascot-img">
+    <span class="mascot-pulse-ring"></span>
+  </button>
+</div>
 
 <!-- Midtrans Snap.js (Dinamis dari /api/config) -->
 <script id="midtrans-script" type="text/javascript"></script>

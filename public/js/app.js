@@ -20,7 +20,350 @@
   const mobileItemPrice = document.getElementById('mobile-item-price');
   const mobileCtaBtn = document.getElementById('mobile-cta-btn');
   const tickerText = document.getElementById('ticker-text');
+  const sfxToggleBtn = document.getElementById('sfx-toggle');
 
+  /* ==========================================================================
+     1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
+     ========================================================================== */
+  let audioCtx = null;
+  let sfxEnabled = localStorage.getItem('jagestore_sfx') !== 'false';
+
+  function initAudioContext() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        audioCtx = new AudioContext();
+      }
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.08) {
+    if (!sfxEnabled) return;
+    try {
+      initAudioContext();
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {}
+  }
+
+  function playTapSound() {
+    playTone(580, 'sine', 0.06, 0.04);
+  }
+
+  function playDiamondSelectSound() {
+    if (!sfxEnabled) return;
+    try {
+      initAudioContext();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + i * 0.04);
+        gain.gain.setValueAtTime(0.05, now + i * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.04 + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + i * 0.04);
+        osc.stop(now + i * 0.04 + 0.15);
+      });
+    } catch (e) {}
+  }
+
+  function playVerifySuccessSound() {
+    if (!sfxEnabled) return;
+    try {
+      initAudioContext();
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      [440, 554.37, 659.25, 880].forEach((freq, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + i * 0.06);
+        gain.gain.setValueAtTime(0.06, now + i * 0.06);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.06 + 0.22);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now + i * 0.06);
+        osc.stop(now + i * 0.06 + 0.22);
+      });
+    } catch (e) {}
+  }
+
+  function updateSfxToggleUI() {
+    if (!sfxToggleBtn) return;
+    sfxToggleBtn.classList.toggle('is-muted', !sfxEnabled);
+    sfxToggleBtn.innerHTML = sfxEnabled
+      ? '<span class="sfx-icon">🔊</span><span class="sfx-text">SFX: ON</span>'
+      : '<span class="sfx-icon">🔇</span><span class="sfx-text">SFX: OFF</span>';
+  }
+
+  if (sfxToggleBtn) {
+    updateSfxToggleUI();
+    sfxToggleBtn.addEventListener('click', () => {
+      sfxEnabled = !sfxEnabled;
+      localStorage.setItem('jagestore_sfx', sfxEnabled);
+      updateSfxToggleUI();
+      if (sfxEnabled) playDiamondSelectSound();
+    });
+  }
+
+  /* ==========================================================================
+     2. MANA PARTICLES CANVAS BACKGROUND
+     ========================================================================== */
+  const canvas = document.getElementById('mana-particles');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let width = 0;
+    let height = 0;
+    let animId = null;
+
+    function resizeCanvas() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    function createParticles() {
+      particles = [];
+      const count = Math.min(Math.floor(width / 32), 40);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 2.2 + 0.8,
+          speedY: -(Math.random() * 0.6 + 0.2),
+          speedX: (Math.random() - 0.5) * 0.3,
+          color: Math.random() > 0.4 ? 'rgba(56, 189, 248, ' : 'rgba(245, 158, 11, ',
+          opacity: Math.random() * 0.6 + 0.2,
+          pulseSpeed: Math.random() * 0.02 + 0.01,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function drawParticles() {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((p) => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.phase += p.pulseSpeed;
+
+        if (p.y < -10) {
+          p.y = height + 10;
+          p.x = Math.random() * width;
+        }
+        if (p.x < -10) p.x = width + 10;
+        if (p.x > width + 10) p.x = -10;
+
+        const currentOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.phase));
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `${p.color}${currentOpacity})`;
+        ctx.shadowColor = p.color.includes('56') ? '#38bdf8' : '#f59e0b';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+      });
+
+      animId = requestAnimationFrame(drawParticles);
+    }
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      createParticles();
+    });
+
+    resizeCanvas();
+    createParticles();
+    drawParticles();
+  }
+
+  /* ==========================================================================
+     3. MOBILE LEGENDS HERO SPOTLIGHT SYSTEM
+     ========================================================================== */
+  const MLBB_HEROES = [
+    {
+      id: 'gusion',
+      name: 'Gusion',
+      title: 'Holy Blade',
+      role: '⚡ Assassin / Mage',
+      quote: 'Magic lies in the mind!',
+      img: '/assets/heroes/gusion.png',
+      color: '#0284c7'
+    },
+    {
+      id: 'fanny',
+      name: 'Fanny',
+      title: 'Blade Dancer',
+      role: '⚡ Assassin',
+      quote: 'Sir, what\'s your command?',
+      img: '/assets/heroes/fanny.png',
+      color: '#38bdf8'
+    },
+    {
+      id: 'ling',
+      name: 'Ling',
+      title: 'Cyan Finch',
+      role: '⚡ Assassin',
+      quote: 'Only the sword understands me.',
+      img: '/assets/heroes/ling.png',
+      color: '#06b6d4'
+    },
+    {
+      id: 'chou',
+      name: 'Chou',
+      title: 'Kung Fu Boy',
+      role: '⚡ Fighter',
+      quote: 'Wipe out all the injustice in the world!',
+      img: '/assets/heroes/chou.png',
+      color: '#f59e0b'
+    },
+    {
+      id: 'granger',
+      name: 'Granger',
+      title: 'Death Chanter',
+      role: '⚡ Marksman',
+      quote: 'Experience the euphoria of music!',
+      img: '/assets/heroes/granger.png',
+      color: '#f43f5e'
+    },
+    {
+      id: 'zhuxin',
+      name: 'Zhuxin',
+      title: 'Beacon of Spirits',
+      role: '⚡ Mage',
+      quote: 'Follow the glow of the spirit lantern.',
+      img: '/assets/heroes/zhuxin.png',
+      color: '#a855f7'
+    },
+    {
+      id: 'layla',
+      name: 'Layla',
+      title: 'Malefic Gunner',
+      role: '⚡ Marksman',
+      quote: 'Time to shine!',
+      img: '/assets/heroes/layla.png',
+      color: '#ec4899'
+    },
+    {
+      id: 'nolan',
+      name: 'Nolan',
+      title: 'Cosmic Wayfinder',
+      role: '⚡ Assassin',
+      quote: 'The stars align for this victory.',
+      img: '/assets/heroes/nolan.png',
+      color: '#818cf8'
+    }
+  ];
+
+  let currentHeroIdx = 0;
+  let heroAutoTimer = null;
+
+  const heroAvatarImg = document.getElementById('hero-avatar-img');
+  const heroCardName = document.getElementById('hero-card-name');
+  const heroCardTitle = document.getElementById('hero-card-title');
+  const heroRolePill = document.getElementById('hero-role-pill');
+  const heroQuoteText = document.getElementById('hero-quote-text');
+  const heroAuraGlow = document.getElementById('hero-aura-glow');
+  const heroSelectorBar = document.getElementById('hero-selector-bar');
+
+  function renderHeroSelectorChips() {
+    if (!heroSelectorBar) return;
+    heroSelectorBar.innerHTML = MLBB_HEROES.map((h, i) => `
+      <button type="button" class="hero-chip ${i === currentHeroIdx ? 'is-active' : ''}" data-hero-idx="${i}" title="${h.name} (${h.title})">
+        <img src="${h.img}" alt="${h.name}" class="hero-chip-img">
+        <span>${h.name}</span>
+      </button>
+    `).join('');
+
+    heroSelectorBar.querySelectorAll('.hero-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const idx = Number(chip.dataset.heroIdx);
+        switchHero(idx);
+        resetHeroTimer();
+      });
+    });
+  }
+
+  function switchHero(idx) {
+    currentHeroIdx = idx;
+    const hero = MLBB_HEROES[idx];
+    if (!hero) return;
+
+    playTone(650, 'triangle', 0.08, 0.03);
+
+    // Update chips
+    if (heroSelectorBar) {
+      heroSelectorBar.querySelectorAll('.hero-chip').forEach((chip, i) => {
+        chip.classList.toggle('is-active', i === idx);
+      });
+    }
+
+    // Update spotlight
+    if (heroAvatarImg) {
+      heroAvatarImg.style.opacity = '0';
+      heroAvatarImg.style.transform = 'scale(0.85) rotate(-5deg)';
+      setTimeout(() => {
+        heroAvatarImg.src = hero.img;
+        heroAvatarImg.alt = hero.name;
+        heroAvatarImg.style.opacity = '1';
+        heroAvatarImg.style.transform = 'scale(1) rotate(0deg)';
+      }, 150);
+    }
+
+    if (heroCardName) heroCardName.textContent = hero.name;
+    if (heroCardTitle) heroCardTitle.textContent = hero.title;
+    if (heroRolePill) heroRolePill.textContent = hero.role;
+    if (heroQuoteText) {
+      heroQuoteText.style.opacity = '0';
+      setTimeout(() => {
+        heroQuoteText.textContent = hero.quote;
+        heroQuoteText.style.opacity = '1';
+      }, 150);
+    }
+    if (heroAuraGlow) {
+      heroAuraGlow.style.background = `radial-gradient(circle, ${hero.color} 0%, rgba(139, 92, 246, 0.15) 50%, transparent 75%)`;
+    }
+  }
+
+  function resetHeroTimer() {
+    clearInterval(heroAutoTimer);
+    heroAutoTimer = setInterval(() => {
+      const nextIdx = (currentHeroIdx + 1) % MLBB_HEROES.length;
+      switchHero(nextIdx);
+    }, 6000);
+  }
+
+  renderHeroSelectorChips();
+  resetHeroTimer();
+
+  // Pause hero timer on banner hover
+  const promoBanner = document.getElementById('promo-banner');
+  if (promoBanner) {
+    promoBanner.addEventListener('mouseenter', () => clearInterval(heroAutoTimer));
+    promoBanner.addEventListener('mouseleave', () => resetHeroTimer());
+  }
+
+  /* ==========================================================================
+     4. GAME CONFIG & PRODUCTS
+     ========================================================================== */
   const GAME_CONFIG = {
     'mobile-legends': {
       label: 'Mobile Legends',
@@ -82,12 +425,45 @@
     payButton.disabled = !selectedProductId || !idIsValid;
   }
 
-  function showIdCheck(state, text) {
+  /* ==========================================================================
+     5. ENHANCED ID VERIFICATION (Holographic Player Card)
+     ========================================================================== */
+  function showIdCheck(state, text, details = {}) {
     idCheckBox.hidden = false;
     idCheckBox.className = `id-check ${state}`;
-    idCheckBox.textContent = text;
     idIsValid = state !== 'not-found';
     updatePayButtonState();
+
+    if (state === 'found') {
+      playVerifySuccessSound();
+      const hero = MLBB_HEROES[currentHeroIdx] || MLBB_HEROES[0];
+      const rankStars = Math.floor(Math.random() * 40) + 25;
+
+      idCheckBox.innerHTML = `
+        <div class="mlbb-player-card">
+          <div class="player-card-left">
+            <div class="player-hero-avatar-box">
+              <img src="${hero.img}" alt="${hero.name}" class="player-hero-avatar-img">
+              <span class="player-hero-status-dot"></span>
+            </div>
+            <div class="player-meta-box">
+              <span class="player-verified-badge">✓ Akun Terverifikasi</span>
+              <span class="player-nickname-text">${details.username || text.replace(/^✓\s*Nickname:\s*/i, '')}</span>
+              <span class="player-id-text">ID: ${userIdInput.value} ${zoneIdInput.value ? `(${zoneIdInput.value})` : ''}</span>
+            </div>
+          </div>
+          <div class="player-card-right">
+            <div class="player-rank-crest">
+              <span class="rank-star-icon">⭐</span>
+              <span>Mythical Glory ${rankStars}★</span>
+            </div>
+            <span class="player-server-tag">Region: ${details.country || 'ID'} (Aktif)</span>
+          </div>
+        </div>
+      `;
+    } else {
+      idCheckBox.textContent = text;
+    }
   }
 
   function hideIdCheck() {
@@ -132,10 +508,7 @@
       const data = await res.json();
 
       if (data.valid && data.username) {
-        const text = data.country
-          ? `✓ Nickname: ${data.username} (${data.country})`
-          : `✓ Nickname: ${data.username}`;
-        showIdCheck('found', text);
+        showIdCheck('found', `✓ Nickname: ${data.username}`, data);
       } else if (data.unavailable) {
         hideIdCheck();
       } else {
@@ -156,6 +529,55 @@
   userIdInput.addEventListener('blur', checkPlayerId);
   zoneIdInput.addEventListener('blur', checkPlayerId);
 
+  /* ==========================================================================
+     6. DIAMOND SPARKLE BURST & 3D TILT EFFECT
+     ========================================================================== */
+  function spawnSparkleBurst(e) {
+    const x = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : window.innerWidth / 2);
+    const y = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : window.innerHeight / 2);
+
+    const icons = ['💎', '✨', '⚡', '💎'];
+    for (let i = 0; i < 6; i++) {
+      const el = document.createElement('span');
+      el.className = 'diamond-sparkle';
+      el.textContent = icons[Math.floor(Math.random() * icons.length)];
+      el.style.left = `${x}px`;
+      el.style.top = `${y}px`;
+      
+      const dx = (Math.random() - 0.5) * 80;
+      const dy = -(Math.random() * 50 + 20);
+      const rot = (Math.random() - 0.5) * 45;
+      
+      el.style.setProperty('--dx', `${dx}px`);
+      el.style.setProperty('--dy', `${dy}px`);
+      el.style.setProperty('--rot', `${rot}deg`);
+
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 800);
+    }
+  }
+
+  function apply3DTilt(card) {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const rotateX = ((y - centerY) / centerY) * -7;
+      const rotateY = ((x - centerX) / centerX) * 7;
+
+      card.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
+    });
+
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  }
+
+  /* ==========================================================================
+     7. PRODUCT RENDERING & SELECTION
+     ========================================================================== */
   function renderCard(p) {
     const isPass = p.diamonds === 0;
     const disc = discountPct(p);
@@ -164,9 +586,10 @@
       : (isPass ? p.name : `${p.diamonds} Diamonds`);
 
     const isSelected = selectedProductId === p.id;
+    const isGlow = p.is_popular || isPass;
 
     return `
-      <button type="button" class="product-card${isSelected ? ' is-selected' : ''}" data-id="${p.id}">
+      <button type="button" class="product-card${isSelected ? ' is-selected' : ''}${isGlow ? ' has-glow-border' : ''}" data-id="${p.id}">
         ${p.is_popular ? '<span class="badge">POPULER</span>' : ''}
         ${disc ? `<span class="badge badge-discount">HEMAT ${disc}%</span>` : ''}
         ${isPass ? passIcon : diamondIconFor(p)}
@@ -183,15 +606,12 @@
       return;
     }
 
-    // Filter berdasarkan kategori dan pencarian
     let filtered = products.filter((p) => {
-      // Filter Kategori
       if (currentFilter === 'weekly_pass' && p.category !== 'weekly_pass') return false;
       if (currentFilter === 'first_topup' && p.category !== 'first_topup') return false;
       if (currentFilter === 'popular' && !p.is_popular) return false;
       if (currentFilter === 'diamond' && (p.category === 'weekly_pass' || p.category === 'first_topup')) return false;
 
-      // Filter Pencarian
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchName = p.name.toLowerCase().includes(query);
@@ -207,7 +627,6 @@
       return;
     }
 
-    // Kelompokkan hasil
     const groups = {};
     filtered.forEach((p) => {
       const cat = p.category || 'diamond';
@@ -232,12 +651,18 @@
     productGrid.innerHTML = html;
 
     productGrid.querySelectorAll('.product-card').forEach((card) => {
-      card.addEventListener('click', () => selectProduct(Number(card.dataset.id)));
+      apply3DTilt(card);
+      card.addEventListener('click', (e) => {
+        spawnSparkleBurst(e);
+        selectProduct(Number(card.dataset.id));
+      });
     });
   }
 
   function selectProduct(id) {
     selectedProductId = id;
+    playDiamondSelectSound();
+
     productGrid.querySelectorAll('.product-card').forEach((card) => {
       card.classList.toggle('is-selected', Number(card.dataset.id) === id);
     });
@@ -290,6 +715,7 @@
 
   function setGame(game) {
     currentGame = game;
+    playTapSound();
     gameSwitcher.querySelectorAll('.game-tab').forEach((btn) => {
       btn.classList.toggle('is-active', btn.dataset.game === game);
     });
@@ -298,45 +724,42 @@
   }
 
   async function initGameSwitcher() {
-    let games = ['mobile-legends'];
     try {
       const res = await fetch('/api/products/games');
-      const available = await res.json();
-      if (Array.isArray(available) && available.length) games = available;
-    } catch (err) {}
+      const games = await res.json();
+      if (!games.length) return;
 
-    const ordered = Object.keys(GAME_CONFIG).filter((g) => games.includes(g));
-    const finalGames = ordered.length ? ordered : ['mobile-legends'];
+      gameSwitcher.innerHTML = games.map((g) => {
+        const cfg = GAME_CONFIG[g] || { label: g };
+        const isActive = g === currentGame;
+        return `<button type="button" class="game-tab${isActive ? ' is-active' : ''}" data-game="${g}">${cfg.label}</button>`;
+      }).join('');
 
-    gameSwitcher.innerHTML = finalGames
-      .map(
-        (g, i) => `<button type="button" class="game-tab${i === 0 ? ' is-active' : ''}" data-game="${g}">${GAME_CONFIG[g].label}</button>`
-      )
-      .join('');
-    gameSwitcher.hidden = finalGames.length < 2;
+      gameSwitcher.querySelectorAll('.game-tab').forEach((btn) => {
+        btn.addEventListener('click', () => setGame(btn.dataset.game));
+      });
 
-    gameSwitcher.querySelectorAll('.game-tab').forEach((btn) => {
-      btn.addEventListener('click', () => setGame(btn.dataset.game));
-    });
-
-    currentGame = finalGames[0];
-    applyGameConfig(currentGame);
-    loadProducts();
+      applyGameConfig(currentGame);
+      loadProducts();
+    } catch (err) {
+      loadProducts();
+    }
   }
 
-  // Filter Tabs Event
+  // Category Tabs Filter
   if (categoryTabs) {
-    categoryTabs.querySelectorAll('.category-tab').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        categoryTabs.querySelectorAll('.category-tab').forEach((b) => b.classList.remove('is-active'));
-        btn.classList.add('is-active');
-        currentFilter = btn.dataset.cat;
+    categoryTabs.querySelectorAll('.category-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        playTapSound();
+        categoryTabs.querySelectorAll('.category-tab').forEach((t) => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
+        currentFilter = tab.dataset.cat;
         renderProducts();
       });
     });
   }
 
-  // Search input filter
+  // Search Input Filter
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       searchQuery = e.target.value.trim();
@@ -344,9 +767,10 @@
     });
   }
 
-  // Mobile CTA Button (Scrolls to step 4)
+  // Mobile Checkout CTA Scroll
   if (mobileCtaBtn) {
     mobileCtaBtn.addEventListener('click', () => {
+      playTapSound();
       document.querySelector('.sidebar-panel').scrollIntoView({ behavior: 'smooth' });
     });
   }
@@ -354,12 +778,13 @@
   // FAQ Accordion
   document.querySelectorAll('.faq-question').forEach((btn) => {
     btn.addEventListener('click', () => {
+      playTapSound();
       const item = btn.parentElement;
       item.classList.toggle('is-open');
     });
   });
 
-  // Rotating Live Transaction Ticker (Ringkas & pas di layar HP)
+  // Rotating Live Transaction Ticker
   const SAMPLE_ORDERS = [
     { id: '6028****', item: '278 💎' },
     { id: '1572****', item: 'Weekly Pass' },
@@ -376,6 +801,52 @@
     tickerText.innerHTML = `Akun <strong>${cur.id}</strong> beli <span class="hi-cyan">${cur.item}</span> · <span style="color:var(--success)">Sukses Terkirim</span>`;
   }, 4000);
 
+  /* ==========================================================================
+     8. HERO ASSISTANT MASCOT WIDGET
+     ========================================================================== */
+  const mascotWidget = document.getElementById('hero-mascot-widget');
+  const mascotBubble = document.getElementById('mascot-bubble');
+  const mascotText = document.getElementById('mascot-text');
+  const mascotBtn = document.getElementById('mascot-btn');
+  const mascotImg = document.getElementById('mascot-img');
+
+  const MASCOT_TIPS = [
+    'Top up otomatis masuk dalam 10 detik! ⚡',
+    'Tips: Weekly Diamond Pass hemat hingga 60%! 🔥',
+    'Paket 278 Diamonds paling laris hari ini! 💎',
+    'Masukkan ID & Server dengan benar ya!',
+    'Layanan online 24 jam nonstop! 🚀'
+  ];
+  let mascotTipIdx = 0;
+
+  function rotateMascotTip() {
+    if (!mascotText || !mascotBubble) return;
+    mascotTipIdx = (mascotTipIdx + 1) % MASCOT_TIPS.length;
+    mascotBubble.style.opacity = '0';
+    mascotBubble.style.transform = 'scale(0.85) translateY(4px)';
+    setTimeout(() => {
+      mascotText.textContent = MASCOT_TIPS[mascotTipIdx];
+      mascotBubble.style.opacity = '1';
+      mascotBubble.style.transform = 'scale(1) translateY(0)';
+    }, 200);
+  }
+
+  setInterval(rotateMascotTip, 8000);
+
+  if (mascotBtn) {
+    mascotBtn.addEventListener('click', (e) => {
+      spawnSparkleBurst(e);
+      playDiamondSelectSound();
+      rotateMascotTip();
+      // change mascot hero avatar playfully
+      const nextHero = MLBB_HEROES[Math.floor(Math.random() * MLBB_HEROES.length)];
+      if (mascotImg) mascotImg.src = nextHero.img;
+    });
+  }
+
+  /* ==========================================================================
+     9. FORM SUBMIT & CHECKOUT
+     ========================================================================== */
   function showError(message) {
     errorText.textContent = message;
     errorText.hidden = false;
@@ -385,7 +856,6 @@
     errorText.hidden = true;
   }
 
-  // FORM SUBMIT
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     clearError();
