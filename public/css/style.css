@@ -258,6 +258,9 @@ body {
   position: relative;
   z-index: 2;
   max-width: 600px;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .promo-badge {
@@ -2882,13 +2885,323 @@ body {
   100% { transform: scale(1.4); opacity: 0; }
 }
 
-/* Responsive adjustments for Mobile */
+/* ==========================================================================
+   HERO SELECTOR & SPOTLIGHT DECK
+   ========================================================================== */
+.hero-selector-wrapper {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.hero-selector-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hero-selector-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  max-width: 100%;
+  padding: 2px 2px 6px;
+}
+
+.hero-selector-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.hero-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(14, 20, 36, 0.85);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 99px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+
+.hero-chip:hover {
+  border-color: var(--cyan);
+  color: #fff;
+  background: rgba(2, 132, 199, 0.15);
+}
+
+.hero-chip.is-active {
+  background: rgba(2, 132, 199, 0.22);
+  border-color: var(--cyan-light);
+  color: #fff;
+  box-shadow: 0 0 12px var(--cyan-glow);
+}
+
+.hero-chip-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(56, 189, 248, 0.5);
+}
+
+.hero-showcase-deck {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.hero-spotlight-card {
+  background: linear-gradient(145deg, #131929 0%, #0c111e 100%);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  border-radius: 16px;
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -5px rgba(0,0,0,0.6), 0 0 20px rgba(2, 132, 199, 0.15);
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-aura-glow {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.3) 0%, transparent 70%);
+  pointer-events: none;
+  transition: background 0.5s ease;
+}
+
+.hero-avatar-container {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  margin-bottom: 10px;
+  z-index: 2;
+}
+
+.hero-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.8));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.hero-card-meta {
+  z-index: 2;
+  margin-bottom: 8px;
+}
+
+.hero-role-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--cyan-light);
+  background: rgba(2, 132, 199, 0.15);
+  border: 1px solid rgba(2, 132, 199, 0.3);
+  padding: 2px 8px;
+  border-radius: 99px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.hero-card-name {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.hero-card-title {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.hero-quote-box {
+  background: rgba(9, 13, 22, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-top: 4px;
+  width: 100%;
+  z-index: 2;
+  transition: opacity 0.2s ease;
+}
+
+.hero-mlbb-stamp {
+  margin-top: 8px;
+  z-index: 2;
+}
+
+.hero-mlbb-logo-mini {
+  height: 16px;
+  width: auto;
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   MOBILE FLOATING CHECKOUT BAR
+   ========================================================================== */
+.mobile-checkout-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(9, 13, 22, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(2, 132, 199, 0.4);
+  padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.7), 0 0 16px rgba(2, 132, 199, 0.15);
+  display: none;
+  animation: slideUpBar 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-checkout-bar.is-visible {
+  display: block;
+}
+
+@keyframes slideUpBar {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.mobile-checkout-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 600px;
+  margin: 0 auto;
+  gap: 12px;
+}
+
+.mobile-summary-name {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.mobile-summary-price {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #38bdf8;
+  text-shadow: 0 0 12px var(--cyan-glow);
+}
+
+.mobile-cta-btn {
+  background: linear-gradient(135deg, #0284c7 0%, #0284c7 50%, #0ea5e9 100%);
+  color: #fff;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 11px 24px;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 16px var(--cyan-glow);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-cta-btn:active {
+  transform: scale(0.96);
+}
+
+/* ==========================================================================
+   MOBILE-FIRST RESPONSIVE ARCHITECTURE
+   ========================================================================== */
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
+
+  .wrap {
+    padding: 0 12px;
+  }
+
+  /* Topbar on mobile */
+  .topbar-inner {
+    height: 54px;
+  }
+
+  .brand-name {
+    font-size: 1.25rem;
+  }
+
+  .brand-mark {
+    width: 24px;
+    height: 24px;
+  }
+
+  .server-status span:last-child {
+    display: none;
+  }
+
+  .server-status {
+    padding: 4px 6px;
+  }
+
+  .topbar-links a[href="#katalog"],
+  .topbar-links a[href="/status.html"] {
+    display: none;
+  }
+
+  .btn-sfx-toggle .sfx-text {
+    display: none;
+  }
+
+  .btn-sfx-toggle {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+  }
+
+  .btn-nav-cs {
+    padding: 4px 8px;
+    font-size: 0.75rem !important;
+  }
+
+  /* Promo Banner on Mobile */
   .promo-banner {
     flex-direction: column;
     align-items: stretch;
-    gap: 20px;
-    padding: 18px 16px;
+    gap: 16px;
+    padding: 16px 14px;
+  }
+
+  .promo-title {
+    font-size: 1.35rem;
   }
 
   .hero-showcase-deck {
@@ -2901,10 +3214,43 @@ body {
     max-width: 320px;
   }
 
+  /* Bento Layout & Padding */
+  .main-layout {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding-bottom: calc(85px + env(safe-area-inset-bottom, 12px));
+  }
+
+  .bento-card {
+    padding: 16px 14px;
+    border-radius: 14px;
+  }
+
+  .bento-card-head {
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+
+  .step-title {
+    font-size: 1.1rem;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .field input, .status-form input {
+    font-size: 16px !important; /* Prevents auto zoom in iOS Safari */
+    padding: 11px 12px;
+  }
+
+  /* Player Card */
   .mlbb-player-card {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
+    padding: 12px;
   }
 
   .player-card-right {
@@ -2915,24 +3261,68 @@ body {
     border-top: 1px solid rgba(255, 255, 255, 0.08);
   }
 
-  .hero-mascot-widget {
-    bottom: 90px; /* Kept safely above mobile checkout bar */
-    right: 14px;
-  }
-
-  .mascot-bubble {
-    max-width: 180px;
-    font-size: 0.72rem;
-  }
-
+  /* Flash Sale Mobile */
   .flash-sale-card {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 10px;
+    padding: 10px 12px;
   }
 
   .flash-sale-right {
     min-width: 100%;
+  }
+
+  /* Product Subgrid Mobile (2-column dense & finger-friendly) */
+  .product-subgrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .product-card {
+    padding: 12px 6px 10px;
+    border-radius: 10px;
+    min-height: 115px;
+  }
+
+  .product-diamond {
+    width: 36px;
+    height: 36px;
+    margin-bottom: 4px;
+  }
+
+  .product-name {
+    font-size: 0.78rem;
+    line-height: 1.25;
+    margin-bottom: 4px;
+  }
+
+  .product-price {
+    font-size: 0.88rem;
+  }
+
+  .badge, .badge-discount, .badge-event, .badge-best-value {
+    font-size: 0.58rem !important;
+    padding: 2px 5px !important;
+    top: 4px !important;
+    left: 4px !important;
+  }
+
+  /* Hero Mascot Widget on Mobile */
+  .hero-mascot-widget {
+    bottom: calc(75px + env(safe-area-inset-bottom, 8px));
+    right: 12px;
+  }
+
+  .mascot-bubble {
+    max-width: 160px;
+    font-size: 0.7rem;
+    padding: 6px 10px;
+  }
+
+  .mascot-avatar-btn {
+    width: 42px;
+    height: 42px;
   }
 }
 
