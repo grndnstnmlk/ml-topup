@@ -16,9 +16,9 @@ const fs = require('fs');
   app.get('/api/products', (req, res) => {
     res.json([
       { id: 1, name: 'Weekly Diamond Pass', price: 31010, original_price: 32500, category: 'weekly_pass', is_popular: 1, diamonds: 0, bonus: 0 },
-      { id: 2, name: '100 (50+50) Diamonds', price: 16037, original_price: null, category: 'first_topup', is_popular: 0, diamonds: 100, bonus: 50 },
-      { id: 3, name: '278 (251+27) Diamonds', price: 81918, original_price: null, category: 'diamond', is_popular: 1, diamonds: 278, bonus: 27 },
-      { id: 4, name: '568 (503+65) Diamonds', price: 162295, original_price: null, category: 'diamond', is_popular: 1, diamonds: 568, bonus: 65 }
+      { id: 2, name: '100 (50+50) Diamonds', price: 16037, original_price: 32000, category: 'first_topup', is_popular: 0, diamonds: 100, bonus: 50 },
+      { id: 3, name: '278 (251+27) Diamonds', price: 81918, original_price: 91000, category: 'diamond', is_popular: 1, diamonds: 278, bonus: 27 },
+      { id: 4, name: '568 (503+65) Diamonds', price: 162295, original_price: 180300, category: 'diamond', is_popular: 1, diamonds: 568, bonus: 65 }
     ]);
   });
   app.post('/api/check-id', (req, res) => {

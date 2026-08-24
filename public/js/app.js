@@ -718,7 +718,9 @@
     const isGlow = p.is_popular || isPass || isEventSpecial;
 
     let badgeHtml = '';
-    if (isEventSpecial) {
+    if (isEventSpecial && disc) {
+      badgeHtml = `<span class="badge badge-event">🎯 PAS EVENT 250 · HEMAT ${disc}%</span>`;
+    } else if (isEventSpecial) {
       badgeHtml = '<span class="badge badge-event">🎯 PAS EVENT 250</span>';
     } else if (disc) {
       badgeHtml = `<span class="badge badge-discount">HEMAT ${disc}%</span>`;
