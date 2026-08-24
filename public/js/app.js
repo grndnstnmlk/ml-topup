@@ -21,6 +21,14 @@
   const mobileCtaBtn = document.getElementById('mobile-cta-btn');
   const tickerText = document.getElementById('ticker-text');
   const sfxToggleBtn = document.getElementById('sfx-toggle');
+  const savedAccountsWrap = document.getElementById('saved-accounts-wrap');
+  const savedAccountsChips = document.getElementById('saved-accounts-chips');
+  const contactInput = document.getElementById('contact');
+  const timerHours = document.getElementById('timer-hours');
+  const timerMins = document.getElementById('timer-mins');
+  const timerSecs = document.getElementById('timer-secs');
+  const flashSaleBar = document.getElementById('flash-sale-bar');
+  const flashSaleStockCount = document.getElementById('flash-sale-stock-count');
 
   /* ==========================================================================
      1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
@@ -119,6 +127,116 @@
       localStorage.setItem('jagestore_sfx', sfxEnabled);
       updateSfxToggleUI();
       if (sfxEnabled) playDiamondSelectSound();
+    });
+  }
+
+  /* ==========================================================================
+     1.1 SAVED ACCOUNTS MANAGER (Local Storage)
+     ========================================================================== */
+  function getSavedAccounts() {
+    try {
+      return JSON.parse(localStorage.getItem('jagestore_saved_accounts') || '[]');
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveAccount(acc) {
+    if (!acc || !acc.userId || !acc.game) return;
+    let list = getSavedAccounts();
+    list = list.filter((a) => !(a.game === acc.game && a.userId === acc.userId && (a.zoneId || '') === (acc.zoneId || '')));
+    list.unshift(acc);
+    if (list.length > 5) list = list.slice(0, 5);
+    try {
+      localStorage.setItem('jagestore_saved_accounts', JSON.stringify(list));
+    } catch (e) {}
+    renderSavedAccounts();
+  }
+
+  function deleteSavedAccount(index, e) {
+    if (e) e.stopPropagation();
+    let list = getSavedAccounts();
+    list.splice(index, 1);
+    try {
+      localStorage.setItem('jagestore_saved_accounts', JSON.stringify(list));
+    } catch (e) {}
+    renderSavedAccounts();
+  }
+
+  function renderSavedAccounts() {
+    if (!savedAccountsWrap || !savedAccountsChips) return;
+    const list = getSavedAccounts().filter((a) => a.game === currentGame);
+    if (!list.length) {
+      savedAccountsWrap.hidden = true;
+      savedAccountsChips.innerHTML = '';
+      return;
+    }
+    savedAccountsWrap.hidden = false;
+    savedAccountsChips.innerHTML = list.map((acc, i) => `
+      <div class="saved-account-chip ${userIdInput.value === acc.userId ? 'is-active' : ''}" data-idx="${i}">
+        <img src="${acc.heroImg || '/assets/heroes/gusion.png'}" class="saved-account-avatar" alt="Avatar">
+        <div class="saved-account-meta">
+          <span class="saved-account-nick">${acc.nickname || 'Player'}</span>
+          <span class="saved-account-id">${acc.userId}${acc.zoneId ? ` (${acc.zoneId})` : ''}</span>
+        </div>
+        <button type="button" class="saved-account-del" title="Hapus akun" aria-label="Hapus akun">×</button>
+      </div>
+    `).join('');
+
+    savedAccountsChips.querySelectorAll('.saved-account-chip').forEach((chip) => {
+      const idx = Number(chip.dataset.idx);
+      chip.addEventListener('click', () => {
+        const acc = list[idx];
+        if (!acc) return;
+        playTapSound();
+        userIdInput.value = acc.userId;
+        if (zoneIdInput) zoneIdInput.value = acc.zoneId || '';
+        renderSavedAccounts();
+        checkPlayerId();
+      });
+
+      const delBtn = chip.querySelector('.saved-account-del');
+      if (delBtn) {
+        delBtn.addEventListener('click', (e) => {
+          deleteSavedAccount(idx, e);
+        });
+      }
+    });
+  }
+
+  /* ==========================================================================
+     1.2 FLASH SALE COUNTDOWN & STOCK TIMER
+     ========================================================================== */
+  function updateFlashSaleTimer() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(23, 59, 59, 999);
+    let diffMs = midnight - now;
+    if (diffMs < 0) diffMs = 0;
+
+    const hours = Math.floor((diffMs / (1000 * 60 * 60)) % 24);
+    const mins = Math.floor((diffMs / (1000 * 60)) % 60);
+    const secs = Math.floor((diffMs / 1000) % 60);
+
+    if (timerHours) timerHours.textContent = String(hours).padStart(2, '0');
+    if (timerMins) timerMins.textContent = String(mins).padStart(2, '0');
+    if (timerSecs) timerSecs.textContent = String(secs).padStart(2, '0');
+
+    const pctSold = Math.min(95, Math.floor(65 + (now.getHours() * 1.3)));
+    const remaining = Math.max(5, 100 - pctSold);
+    if (flashSaleBar) flashSaleBar.style.width = `${pctSold}%`;
+    if (flashSaleStockCount) flashSaleStockCount.textContent = `${remaining} / 100 Paket`;
+  }
+
+  setInterval(updateFlashSaleTimer, 1000);
+  updateFlashSaleTimer();
+
+  // Contact Memory Auto-fill
+  if (contactInput) {
+    const savedContact = localStorage.getItem('jagestore_contact');
+    if (savedContact) contactInput.value = savedContact;
+    contactInput.addEventListener('input', () => {
+      localStorage.setItem('jagestore_contact', contactInput.value.trim());
     });
   }
 
@@ -438,6 +556,16 @@
       playVerifySuccessSound();
       const hero = MLBB_HEROES[currentHeroIdx] || MLBB_HEROES[0];
       const rankStars = Math.floor(Math.random() * 40) + 25;
+      const nick = details.username || text.replace(/^✓\s*Nickname:\s*/i, '');
+
+      // Auto-save account into local storage
+      saveAccount({
+        game: currentGame,
+        userId: userIdInput.value.trim(),
+        zoneId: zoneIdInput ? zoneIdInput.value.trim() : '',
+        nickname: nick,
+        heroImg: hero.img
+      });
 
       idCheckBox.innerHTML = `
         <div class="mlbb-player-card">
@@ -448,7 +576,7 @@
             </div>
             <div class="player-meta-box">
               <span class="player-verified-badge">✓ Akun Terverifikasi</span>
-              <span class="player-nickname-text">${details.username || text.replace(/^✓\s*Nickname:\s*/i, '')}</span>
+              <span class="player-nickname-text">${nick}</span>
               <span class="player-id-text">ID: ${userIdInput.value} ${zoneIdInput.value ? `(${zoneIdInput.value})` : ''}</span>
             </div>
           </div>
@@ -579,19 +707,22 @@
      7. PRODUCT RENDERING & SELECTION
      ========================================================================== */
   function renderCard(p) {
-    const isPass = p.diamonds === 0;
+    const isPass = p.diamonds === 0 || p.category === 'weekly_pass';
     const disc = discountPct(p);
     const bonusLabel = p.bonus > 0
       ? `${p.diamonds} (${p.diamonds - p.bonus}+${p.bonus}) Diamonds`
       : (isPass ? p.name : `${p.diamonds} Diamonds`);
 
     const isSelected = selectedProductId === p.id;
-    const isGlow = p.is_popular || isPass;
+    const isEventSpecial = p.diamonds === 278;
+    const isGlow = p.is_popular || isPass || isEventSpecial;
 
     return `
       <button type="button" class="product-card${isSelected ? ' is-selected' : ''}${isGlow ? ' has-glow-border' : ''}" data-id="${p.id}">
-        ${p.is_popular ? '<span class="badge">POPULER</span>' : ''}
-        ${disc ? `<span class="badge badge-discount">HEMAT ${disc}%</span>` : ''}
+        ${isEventSpecial ? '<span class="badge badge-event">🎯 PAS EVENT 250</span>' : ''}
+        ${isPass ? '<span class="badge badge-best-value">👑 HEMAT 300%</span>' : ''}
+        ${p.is_popular && !isEventSpecial && !isPass ? '<span class="badge">POPULER</span>' : ''}
+        ${disc && !isEventSpecial && !isPass ? `<span class="badge badge-discount">HEMAT ${disc}%</span>` : ''}
         ${isPass ? passIcon : diamondIconFor(p)}
         <div class="product-name">${bonusLabel}</div>
         ${disc ? `<div class="product-original-price">${formatRupiah(p.original_price)}</div>` : ''}
@@ -711,6 +842,7 @@
     zoneIdInput.value = '';
     userIdInput.value = '';
     hideIdCheck();
+    renderSavedAccounts();
   }
 
   function setGame(game) {
@@ -741,6 +873,7 @@
 
       applyGameConfig(currentGame);
       loadProducts();
+      renderSavedAccounts();
     } catch (err) {
       loadProducts();
     }
@@ -903,9 +1036,11 @@
     if (!idIsValid) {
       return showError('ID akun tidak ditemukan. Periksa kembali User ID & Server ID.', idCheckBox.hidden ? userIdInput : idCheckBox);
     }
-    if (!contact) {
-      return showError('Email / WhatsApp wajib diisi.', document.getElementById('contact'));
+    if (!contact || !contact.includes('@')) {
+      return showError('Alamat email wajib diisi dengan benar (contoh: nama@email.com).', document.getElementById('contact'));
     }
+
+    localStorage.setItem('jagestore_contact', contact);
 
     payButton.disabled = true;
     const originalLabel = payLabel.textContent;

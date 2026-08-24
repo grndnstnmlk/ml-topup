@@ -53,15 +53,15 @@ router.post('/', (req, res) => {
 
   if (deliveryStatus === 'terkirim' && order.contact) {
     notifyCustomer(order.contact, {
-      subject: `Diamond Sudah Masuk — ${ref_id}`,
-      message: `Diamond untuk Order ${ref_id} sudah berhasil masuk ke akun ${order.game_user_id} (${order.game_zone_id}). Selamat bermain!`,
-      html: `<p>Diamond untuk Order <b>${ref_id}</b> sudah berhasil masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Selamat bermain!</p>`,
+      subject: `⚡ Diamond Berhasil Masuk — ${ref_id}`,
+      message: `*TOP UP BERHASIL!* ⚡💎\n\nDiamond sudah berhasil masuk langsung ke akun kamu:\n🎮 *Akun:* ${order.game_user_id}${order.game_zone_id ? ` (${order.game_zone_id})` : ''}\n🧾 *Order ID:* \`${ref_id}\`\n${sn ? `🔑 *No Seri (SN):* \`${sn}\`\n` : ''}\nTerima kasih telah top up di *JAGESTORE*! Selamat bermain! 🏆✨\n\n🌐 https://jagestore.shop/`,
+      html: `<p>Top Up Berhasil!</p><p>Diamond untuk Order <b>${ref_id}</b> sudah masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p>${sn ? `<p><b>No Seri (SN):</b> ${sn}</p>` : ''}<p>Selamat bermain!</p>`,
     }).catch(() => {});
   } else if (deliveryStatus === 'gagal' && order.contact) {
     notifyCustomer(order.contact, {
-      subject: `Pengiriman Diamond Gagal — ${ref_id}`,
-      message: `Pengiriman diamond untuk Order ${ref_id} gagal diproses. Tim kami akan segera menindaklanjuti — dana kamu aman.`,
-      html: `<p>Pengiriman diamond untuk Order <b>${ref_id}</b> gagal diproses.</p><p>Tim kami akan segera menindaklanjuti — dana kamu aman.</p>`,
+      subject: `⚠️ Pengiriman Diamond Tertunda — ${ref_id}`,
+      message: `*PEMBERITAHUAN PENGIRIMAN* ⚠️\n\nPengiriman diamond untuk Order \`${ref_id}\` mengalami kendala sistem: _${message || 'Silakan hubungi CS'}_.\n\n🛡️ *Dana Anda 100% aman!* Hubungi CS untuk bantuan kilat: https://wa.me/6281295713923?text=Halo%20Admin%20Order%20${ref_id}%20butuh%20bantuan`,
+      html: `<p>Pengiriman diamond untuk Order <b>${ref_id}</b> gagal diproses (${message || ''}).</p><p>Dana kamu aman. Tim kami sedang menindaklanjuti.</p>`,
     }).catch(() => {});
   }
 

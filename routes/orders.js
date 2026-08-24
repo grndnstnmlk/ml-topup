@@ -3,6 +3,7 @@ const router = express.Router();
 const midtransClient = require('midtrans-client');
 const { nanoid } = require('nanoid');
 const db = require('../db');
+const { notifyCustomer } = require('../utils/notify');
 
 // Game yang butuh Zone/Server ID selain User ID (mis. Mobile Legends).
 // Game lain (Free Fire, PUBG Mobile, dst) cukup 1 ID saja.
@@ -27,12 +28,15 @@ router.post('/', async (req, res) => {
 
     if (!product_id || !game_user_id || !contact) {
       return res.status(400).json({
-        error: 'product_id, game_user_id, dan email wajib diisi',
+        error: 'product_id, game_user_id, dan alamat email wajib diisi',
       });
     }
 
-    if (!contact.includes('@')) {
-      return res.status(400).json({ error: 'Format email tidak valid' });
+    const cleanContact = contact.trim();
+    if (!cleanContact.includes('@')) {
+      return res.status(400).json({ 
+        error: 'Format email tidak valid. Masukkan alamat email yang benar (contoh: nama@email.com).' 
+      });
     }
 
     const product = db
@@ -75,6 +79,16 @@ router.post('/', async (req, res) => {
 
     const orderId = `MLTOP-${Date.now()}-${nanoid(6).toUpperCase()}`;
 
+    const trackingUrl = `${process.env.APP_BASE_URL || 'https://jagestore.shop'}/status.html?order_id=${orderId}`;
+    const formattedPrice = 'Rp' + Number(product.price).toLocaleString('id-ID');
+
+    // Kirim notifikasi tagihan order baru (asinkron, tidak memblokir response)
+    notifyCustomer(contact, {
+      subject: `Tagihan Pesanan ${orderId} — JAGESTORE`,
+      message: `*Halo Gamers!* 👋\n\nPesanan top up kamu di *JAGESTORE* sudah dibuat:\n📦 *Paket:* ${product.name}\n🎮 *Akun:* ${game_user_id}${game_zone_id ? ` (${game_zone_id})` : ''}\n💰 *Total Tagihan:* ${formattedPrice}\n🧾 *Order ID:* \`${orderId}\`\n\n🔗 *Lacak Pesanan / Bayar:*\n${trackingUrl}\n\n_Diamond akan otomatis terkirim < 60 detik setelah pembayaran terverifikasi._ ⚡`,
+      html: `<p>Halo,</p><p>Pesanan kamu untuk <b>${product.name}</b> (Order <b>${orderId}</b>) sebesar <b>${formattedPrice}</b> sudah dibuat.</p><p><a href="${trackingUrl}">Klik di sini untuk pantau status pesanan</a></p>`,
+    }).catch((e) => console.error('[orders] Gagal kirim notifikasi order baru:', e.message));
+
     if (PAYMENT_METHOD === 'qris_manual') {
       db.prepare(
         `INSERT INTO orders (order_id, product_id, game_user_id, game_zone_id, contact, price, status, payment_type)
@@ -105,7 +119,7 @@ router.post('/', async (req, res) => {
       ],
       customer_details: {
         first_name: `ID ${game_user_id}`,
-        email: contact || 'noemail@example.com',
+        email: cleanContact,
       },
       callbacks: {
         finish: `${process.env.APP_BASE_URL}/status.html?order_id=${orderId}`,

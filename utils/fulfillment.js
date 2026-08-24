@@ -18,11 +18,14 @@ async function fulfillPaidOrder(orderId) {
 
   if (!order) return null;
 
+  const statusUrl = `${process.env.APP_BASE_URL || 'https://jagestore.shop'}/status.html?order_id=${orderId}`;
+  const formattedPrice = 'Rp' + Number(order.price).toLocaleString('id-ID');
+
   if (order.contact) {
     await notifyCustomer(order.contact, {
-      subject: `Pembayaran Berhasil — ${orderId}`,
-      message: `Pembayaran kamu untuk ${order.product_name} (Order ${orderId}) sudah berhasil! Diamond akan segera diproses ke akun ${order.game_user_id} (${order.game_zone_id}). Terima kasih sudah top up di JAGESTORE.`,
-      html: `<p>Halo,</p><p>Pembayaran kamu untuk <b>${order.product_name}</b> (Order <b>${orderId}</b>) sudah berhasil!</p><p>Diamond akan segera diproses ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Terima kasih sudah top up di JAGESTORE.</p>`,
+      subject: `✅ Pembayaran Berhasil — ${orderId}`,
+      message: `*PEMBAYARAN DITERIMA* ✅\n\nHalo Gamers! Pembayaran kamu sudah berhasil diverifikasi:\n🧾 *Order ID:* \`${orderId}\`\n📦 *Paket:* ${order.product_name}\n🎮 *Akun:* ${order.game_user_id}${order.game_zone_id ? ` (${order.game_zone_id})` : ''}\n💰 *Nominal:* ${formattedPrice}\n\n⏳ _Sistem kami sedang otomatis mengirimkan diamond ke akunmu..._\n🔗 *Pantau Live:* ${statusUrl}`,
+      html: `<p>Halo,</p><p>Pembayaran kamu untuk <b>${order.product_name}</b> (Order <b>${orderId}</b>) sudah berhasil!</p><p>Diamond sedang diproses ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p><a href="${statusUrl}">Pantau Status Pengiriman</a></p>`,
     });
   }
 
@@ -50,15 +53,15 @@ async function fulfillPaidOrder(orderId) {
   // Kalau masih 'diproses', biarkan webhook Digiflazz (/api/digiflazz-webhook) yang update nanti.
   if (result.status === 'terkirim' && order.contact) {
     await notifyCustomer(order.contact, {
-      subject: `Diamond Sudah Masuk — ${orderId}`,
-      message: `Diamond untuk Order ${orderId} sudah berhasil masuk ke akun ${order.game_user_id} (${order.game_zone_id}). Selamat bermain!`,
-      html: `<p>Diamond untuk Order <b>${orderId}</b> sudah berhasil masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Selamat bermain!</p>`,
+      subject: `⚡ Diamond Berhasil Masuk — ${orderId}`,
+      message: `*TOP UP BERHASIL!* ⚡💎\n\nDiamond sudah berhasil masuk langsung ke akun kamu:\n🎮 *Akun:* ${order.game_user_id}${order.game_zone_id ? ` (${order.game_zone_id})` : ''}\n📦 *Item:* ${order.product_name}\n🧾 *Order ID:* \`${orderId}\`\n${result.sn ? `🔑 *No Seri (SN):* \`${result.sn}\`\n` : ''}\nTerima kasih telah top up di *JAGESTORE*! Selamat bermain & push rank! 🏆✨\n\n🌐 https://jagestore.shop/`,
+      html: `<p>Top Up Berhasil!</p><p>Diamond untuk Order <b>${orderId}</b> sudah masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p>${result.sn ? `<p><b>No Seri (SN):</b> ${result.sn}</p>` : ''}<p>Selamat bermain!</p>`,
     });
   } else if (result.status === 'gagal' && order.contact) {
     await notifyCustomer(order.contact, {
-      subject: `Pengiriman Diamond Gagal — ${orderId}`,
-      message: `Pengiriman diamond untuk Order ${orderId} gagal diproses (${result.message}). Tim kami akan segera menindaklanjuti — dana kamu aman.`,
-      html: `<p>Pengiriman diamond untuk Order <b>${orderId}</b> gagal diproses (${result.message}).</p><p>Tim kami akan segera menindaklanjuti — dana kamu aman.</p>`,
+      subject: `⚠️ Pengiriman Diamond Tertunda — ${orderId}`,
+      message: `*PEMBERITAHUAN PENGIRIMAN* ⚠️\n\nPengiriman diamond untuk Order \`${orderId}\` mengalami kendala sistem: _${result.message}_.\n\n🛡️ *Tenang, dana Anda 100% aman!* Tim CS Admin kami sedang menindaklanjuti.\n\n💬 Hubungi CS jika butuh bantuan cepat: https://wa.me/6281295713923?text=Halo%20Admin%20Order%20${orderId}%20butuh%20bantuan`,
+      html: `<p>Pengiriman diamond untuk Order <b>${orderId}</b> mengalami kendala (${result.message}).</p><p>Dana kamu aman. Tim kami sedang menindaklanjuti.</p>`,
     });
   }
 

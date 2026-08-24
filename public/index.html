@@ -260,6 +260,14 @@
 
           <div class="game-switcher" id="game-switcher" aria-label="Pilih game"></div>
 
+          <!-- SAVED ACCOUNTS AUTO-FILL CHIPS -->
+          <div class="saved-accounts-wrap" id="saved-accounts-wrap" hidden>
+            <div class="saved-accounts-head">
+              <span class="saved-accounts-title">⚡ Akun Tersimpan:</span>
+            </div>
+            <div class="saved-accounts-chips" id="saved-accounts-chips"></div>
+          </div>
+
           <div class="field-row">
             <div class="field">
               <label for="game_user_id" id="user-id-label">User ID</label>
@@ -283,6 +291,35 @@
             <div>
               <h2 class="step-title">Pilih Nominal Diamond</h2>
               <p class="step-subtitle">Pilih paket diamond atau pass yang kamu inginkan</p>
+            </div>
+          </div>
+
+          <!-- FLASH SALE & PROMO COUNTDOWN WIDGET -->
+          <div class="flash-sale-card" id="flash-sale-card">
+            <div class="flash-sale-left">
+              <div class="flash-sale-badge">
+                <span class="flash-sale-dot"></span>
+                <span>⚡ FLASH SALE HARI INI</span>
+              </div>
+              <div class="flash-sale-timer-wrap">
+                <span class="flash-sale-timer-label">Berakhir Dalam:</span>
+                <div class="flash-sale-digits" id="flash-sale-timer" aria-label="Timer flash sale">
+                  <span class="digit-box" id="timer-hours">00</span>
+                  <span class="digit-sep">:</span>
+                  <span class="digit-box" id="timer-mins">00</span>
+                  <span class="digit-sep">:</span>
+                  <span class="digit-box" id="timer-secs">00</span>
+                </div>
+              </div>
+            </div>
+            <div class="flash-sale-right">
+              <div class="flash-sale-stock-text">
+                <span>Sisa Kuota Diskon:</span>
+                <strong id="flash-sale-stock-count">18 / 100 Paket</strong>
+              </div>
+              <div class="flash-sale-progress">
+                <div class="flash-sale-bar" id="flash-sale-bar" style="width: 82%;"></div>
+              </div>
             </div>
           </div>
 
@@ -352,8 +389,9 @@
           </div>
 
           <div class="field" style="margin-bottom:14px;">
-            <label for="contact">Email / WhatsApp <span style="font-size:0.7rem; color:var(--text-muted);">(Bukti Order)</span></label>
-            <input type="email" id="contact" placeholder="nama@email.com" required>
+            <label for="contact">Alamat Email <span style="font-size:0.7rem; color:var(--text-muted);">(Bukti Order &amp; SN)</span></label>
+            <input type="email" id="contact" placeholder="nama@email.com" required autocomplete="email">
+            <p class="field-hint">⚡ Invoice &amp; Serial Number (SN) resmi akan dikirim ke email kamu.</p>
           </div>
 
           <div id="order-summary" aria-live="polite">

@@ -112,9 +112,9 @@ router.post('/orders/:order_id/retry', async (req, res) => {
 
   if (result.status === 'terkirim' && order.contact) {
     notifyCustomer(order.contact, {
-      subject: `Diamond Sudah Masuk — ${orderId}`,
-      message: `Diamond untuk Order ${orderId} sudah berhasil masuk ke akun ${order.game_user_id} (${order.game_zone_id}). Selamat bermain!`,
-      html: `<p>Diamond untuk Order <b>${orderId}</b> sudah berhasil masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p>Selamat bermain!</p>`,
+      subject: `⚡ Diamond Berhasil Masuk — ${orderId}`,
+      message: `*TOP UP BERHASIL!* ⚡💎\n\nDiamond sudah berhasil masuk langsung ke akun kamu:\n🎮 *Akun:* ${order.game_user_id}${order.game_zone_id ? ` (${order.game_zone_id})` : ''}\n🧾 *Order ID:* \`${orderId}\`\n${result.sn ? `🔑 *No Seri (SN):* \`${result.sn}\`\n` : ''}\nTerima kasih telah top up di *JAGESTORE*! Selamat bermain! 🏆✨\n\n🌐 https://jagestore.shop/`,
+      html: `<p>Diamond untuk Order <b>${orderId}</b> sudah berhasil masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p>${result.sn ? `<p><b>No Seri (SN):</b> ${result.sn}</p>` : ''}<p>Selamat bermain!</p>`,
     }).catch(() => {});
   }
 

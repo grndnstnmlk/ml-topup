@@ -2924,7 +2924,287 @@ body {
     max-width: 180px;
     font-size: 0.72rem;
   }
+
+  .flash-sale-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .flash-sale-right {
+    min-width: 100%;
+  }
 }
 
+/* ==========================================================================
+   SAVED ACCOUNTS AUTO-FILL CHIPS
+   ========================================================================== */
+.saved-accounts-wrap {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  background: rgba(14, 19, 38, 0.65);
+  border: 1px solid rgba(2, 132, 199, 0.25);
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease;
+}
 
+.saved-accounts-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
 
+.saved-accounts-title {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--cyan-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.saved-accounts-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.saved-account-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  padding: 5px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  user-select: none;
+}
+
+.saved-account-chip:hover {
+  border-color: var(--cyan);
+  background: rgba(2, 132, 199, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--cyan-glow);
+}
+
+.saved-account-chip.is-active {
+  border-color: var(--cyan-light);
+  background: rgba(56, 189, 248, 0.2);
+  box-shadow: 0 0 0 1px var(--cyan-light);
+}
+
+.saved-account-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--cyan);
+}
+
+.saved-account-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.saved-account-nick {
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #fff;
+}
+
+.saved-account-id {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.saved-account-del {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 0.85rem;
+  line-height: 1;
+  border-radius: 50%;
+  transition: color var(--transition-fast);
+}
+
+.saved-account-del:hover {
+  color: var(--magenta);
+}
+
+/* ==========================================================================
+   FLASH SALE COUNTDOWN & STOCK WIDGET
+   ========================================================================== */
+.flash-sale-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(244, 63, 94, 0.08) 50%, rgba(14, 19, 38, 0.9) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px -4px rgba(245, 158, 11, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.flash-sale-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  transform: skewX(-20deg);
+  animation: flashSheen 5s infinite;
+  pointer-events: none;
+}
+
+@keyframes flashSheen {
+  0% { left: -100%; }
+  30%, 100% { left: 200%; }
+}
+
+.flash-sale-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flash-sale-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.flash-sale-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--magenta);
+  box-shadow: 0 0 8px var(--magenta);
+  animation: pulse-dot 1.5s infinite;
+}
+
+.flash-sale-timer-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flash-sale-timer-label {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.flash-sale-digits {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.digit-box {
+  background: #090d16;
+  color: #fff;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  padding: 2px 6px;
+  border-radius: 6px;
+  min-width: 24px;
+  text-align: center;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.15);
+}
+
+.digit-sep {
+  color: var(--gold);
+  font-weight: 800;
+  animation: blinkSep 1s infinite;
+}
+
+@keyframes blinkSep {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.flash-sale-right {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 170px;
+}
+
+.flash-sale-stock-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.flash-sale-stock-text strong {
+  color: var(--gold);
+  font-family: var(--font-mono);
+}
+
+.flash-sale-progress {
+  width: 100%;
+  height: 6px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 99px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.flash-sale-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--magenta));
+  border-radius: 99px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  transition: width 0.5s ease;
+}
+
+/* ==========================================================================
+   BADGE EVENT & BEST VALUE STYLES
+   ========================================================================== */
+.badge-event {
+  background: linear-gradient(135deg, #0284c7, #8b5cf6) !important;
+  color: #fff !important;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4) !important;
+  font-size: 0.62rem !important;
+  font-weight: 700 !important;
+}
+
+.badge-best-value {
+  background: linear-gradient(135deg, #f59e0b, #10b981) !important;
+  color: #090d16 !important;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4) !important;
+  font-size: 0.62rem !important;
+  font-weight: 800 !important;
+}
+
+.field-hint {
+  font-size: 0.72rem;
+  color: var(--cyan-light);
+  line-height: 1.35;
+  margin-top: 2px;
+}
