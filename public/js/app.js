@@ -717,12 +717,18 @@
     const isEventSpecial = p.diamonds === 278;
     const isGlow = p.is_popular || isPass || isEventSpecial;
 
+    let badgeHtml = '';
+    if (isEventSpecial) {
+      badgeHtml = '<span class="badge badge-event">🎯 PAS EVENT 250</span>';
+    } else if (disc) {
+      badgeHtml = `<span class="badge badge-discount">HEMAT ${disc}%</span>`;
+    } else if (p.is_popular) {
+      badgeHtml = '<span class="badge">POPULER</span>';
+    }
+
     return `
       <button type="button" class="product-card${isSelected ? ' is-selected' : ''}${isGlow ? ' has-glow-border' : ''}" data-id="${p.id}">
-        ${isEventSpecial ? '<span class="badge badge-event">🎯 PAS EVENT 250</span>' : ''}
-        ${isPass ? '<span class="badge badge-best-value">👑 HEMAT 300%</span>' : ''}
-        ${p.is_popular && !isEventSpecial && !isPass ? '<span class="badge">POPULER</span>' : ''}
-        ${disc && !isEventSpecial && !isPass ? `<span class="badge badge-discount">HEMAT ${disc}%</span>` : ''}
+        ${badgeHtml}
         ${isPass ? passIcon : diamondIconFor(p)}
         <div class="product-name">${bonusLabel}</div>
         ${disc ? `<div class="product-original-price">${formatRupiah(p.original_price)}</div>` : ''}
