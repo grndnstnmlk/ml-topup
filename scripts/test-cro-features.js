@@ -51,12 +51,14 @@ const fs = require('fs');
     console.log(`   ✓ Timer countdown: ${timerHours}:${timerMins}:${timerSecs}`);
     console.log(`   ✓ Stock quota: ${stockText}`);
 
-    // 2. Check Event Badges & Discount Badges
-    console.log('\n2️⃣ Checking Event Mission & Discount Badges...');
+    // 2. Check Event Badges, Discount Badges & Popular/Favorite Badges
+    console.log('\n2️⃣ Checking Event Mission, Discount & Favorite Badges...');
     const eventBadge = await page.$eval('.badge-event', el => el.textContent).catch(() => null);
     const discountBadge = await page.$eval('.badge-discount', el => el.textContent).catch(() => null);
+    const popularBadge = await page.$eval('.badge-popular', el => el.textContent).catch(() => null);
     console.log(`   ✓ Event Badge (278 Diamonds): "${eventBadge}"`);
     console.log(`   ✓ Discount Badge (Weekly Pass): "${discountBadge}"`);
+    console.log(`   ✓ Popular/Favorite Badge: "${popularBadge}"`);
 
     // 3. Test ID input & Local Storage Auto-save
     console.log('\n3️⃣ Testing ID Verification & Account Memory...');

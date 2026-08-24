@@ -715,22 +715,22 @@
 
     const isSelected = selectedProductId === p.id;
     const isEventSpecial = p.diamonds === 278;
-    const isGlow = p.is_popular || isPass || isEventSpecial;
+    const isPopular = p.is_popular;
+    const isGlow = isPopular || isPass || isEventSpecial;
 
-    let badgeHtml = '';
-    if (isEventSpecial && disc) {
-      badgeHtml = `<span class="badge badge-event">🎯 PAS EVENT 250 · HEMAT ${disc}%</span>`;
-    } else if (isEventSpecial) {
-      badgeHtml = '<span class="badge badge-event">🎯 PAS EVENT 250</span>';
-    } else if (disc) {
-      badgeHtml = `<span class="badge badge-discount">HEMAT ${disc}%</span>`;
-    } else if (p.is_popular) {
-      badgeHtml = '<span class="badge">POPULER</span>';
+    let badges = [];
+    if (disc) {
+      badges.push(`<span class="badge badge-discount">HEMAT ${disc}%</span>`);
+    }
+    if (isEventSpecial) {
+      badges.push('<span class="badge badge-event">🎯 EVENT 250</span>');
+    } else if (isPopular || isPass) {
+      badges.push('<span class="badge badge-popular">🔥 FAVORIT</span>');
     }
 
     return `
       <button type="button" class="product-card${isSelected ? ' is-selected' : ''}${isGlow ? ' has-glow-border' : ''}" data-id="${p.id}">
-        ${badgeHtml}
+        ${badges.join('')}
         ${isPass ? passIcon : diamondIconFor(p)}
         <div class="product-name">${bonusLabel}</div>
         ${disc ? `<div class="product-original-price">${formatRupiah(p.original_price)}</div>` : ''}
