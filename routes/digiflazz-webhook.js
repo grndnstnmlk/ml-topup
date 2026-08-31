@@ -39,11 +39,12 @@ router.post('/', (req, res) => {
 
   console.log(`[digiflazz-webhook] Order ${ref_id}: status=${status} rc=${rc} sn=${sn || '-'}`);
 
-  // ref_id yang kita kirim saat topup = order_id kita sendiri, jadi bisa langsung match
-  const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(ref_id);
+  // ref_id yang kita kirim saat topup = order_id kita sendiri (atau dengan suffix -Rxxxx saat retry)
+  const baseOrderId = ref_id ? ref_id.replace(/-R\d+$/, '') : ref_id;
+  const order = db.prepare('SELECT * FROM orders WHERE order_id = ? OR order_id = ?').get(ref_id, baseOrderId);
 
   if (!order) {
-    console.warn(`[digiflazz-webhook] Order ${ref_id} tidak ditemukan di database kita.`);
+    console.warn(`[digiflazz-webhook] Order ${ref_id} (base: ${baseOrderId}) tidak ditemukan di database kita.`);
     return res.status(200).send('OK'); // tetap 200 biar Digiflazz tidak retry terus
   }
 
@@ -52,7 +53,7 @@ router.post('/', (req, res) => {
   db.prepare(
     `UPDATE orders SET delivery_status = ?, delivery_sn = ?, delivery_message = ?, updated_at = CURRENT_TIMESTAMP
      WHERE order_id = ?`
-  ).run(deliveryStatus, sn || null, message || null, ref_id);
+  ).run(deliveryStatus, sn || null, message || null, order.order_id);
 
   if (deliveryStatus === 'terkirim' && order.contact) {
     notifyCustomer(order.contact, {

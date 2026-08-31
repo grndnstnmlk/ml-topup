@@ -117,7 +117,8 @@ router.post('/orders/:order_id/retry', async (req, res) => {
   }
 
   const customerNo = `${order.game_user_id}${order.game_zone_id}`;
-  const result = await topupDiamond({ sku: order.digiflazz_sku, customerNo, refId: orderId });
+  const retryRefId = `${orderId}-R${Date.now().toString().slice(-4)}`;
+  const result = await topupDiamond({ sku: order.digiflazz_sku, customerNo, refId: retryRefId });
 
   db.prepare(
     `UPDATE orders SET delivery_status = ?, delivery_sn = ?, delivery_message = ?, updated_at = CURRENT_TIMESTAMP
