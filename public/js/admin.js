@@ -30,6 +30,53 @@ const deliveryLabel = {
   gagal: 'Gagal',
 };
 
+// Toast notification helper
+function showToast(message, type = 'info') {
+  let container = document.getElementById('admin-toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'admin-toast-container';
+    container.style.cssText = `
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  const bg = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#0284c7';
+  toast.style.cssText = `
+    background: #0d1322;
+    color: #fff;
+    border: 1px solid ${bg};
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5), 0 0 10px ${bg}44;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    pointer-events: auto;
+    animation: toastSlideIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    max-width: 360px;
+  `;
+  toast.innerHTML = message;
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
 function formatRupiah(n) {
   return 'Rp' + Number(n).toLocaleString('id-ID');
 }
@@ -67,14 +114,26 @@ function updateStats(orders) {
   if (statFailed) statFailed.textContent = failedCount;
 }
 
-async function loadOrders() {
-  tbody.innerHTML = '<tr><td colspan="9" class="admin-empty">Memuat data pesanan…</td></tr>';
-  if (cardsContainer) cardsContainer.innerHTML = '<p class="admin-empty">Memuat data pesanan…</p>';
+let isFetching = false;
+
+// loadOrders dengan dukungan silent mode (tanpa kedip/tanpa reload layar)
+async function loadOrders(silent = false) {
+  if (isFetching) return;
+  isFetching = true;
+
+  if (!silent) {
+    if (tbody && (!tbody.children.length || tbody.innerHTML.includes('admin-empty'))) {
+      tbody.innerHTML = '<tr><td colspan="9" class="admin-empty">Memuat data pesanan…</td></tr>';
+    }
+    if (cardsContainer && (!cardsContainer.children.length || cardsContainer.innerHTML.includes('admin-empty'))) {
+      cardsContainer.innerHTML = '<p class="admin-empty">Memuat data pesanan…</p>';
+    }
+  }
 
   const params = new URLSearchParams();
-  if (searchInput.value.trim()) params.set('q', searchInput.value.trim());
-  if (statusFilter.value) params.set('status', statusFilter.value);
-  if (deliveryFilter.value) params.set('delivery_status', deliveryFilter.value);
+  if (searchInput && searchInput.value.trim()) params.set('q', searchInput.value.trim());
+  if (statusFilter && statusFilter.value) params.set('status', statusFilter.value);
+  if (deliveryFilter && deliveryFilter.value) params.set('delivery_status', deliveryFilter.value);
 
   try {
     const res = await fetch(`/api/admin/orders?${params.toString()}`);
@@ -86,7 +145,7 @@ async function loadOrders() {
     }
 
     const orders = await res.json();
-    countLabel.textContent = `Menampilkan ${orders.length} pesanan`;
+    if (countLabel) countLabel.textContent = `Menampilkan ${orders.length} pesanan`;
     updateStats(orders);
 
     if (orders.length === 0) {
@@ -95,39 +154,46 @@ async function loadOrders() {
       return;
     }
 
-    // Render Desktop Table
+    // Render Desktop Table & Mobile Cards seamlessly
     tbody.innerHTML = orders.map(renderRow).join('');
-
-    // Render Mobile Cards
     if (cardsContainer) {
       cardsContainer.innerHTML = orders.map(renderMobileCard).join('');
     }
 
-    // Bind event listeners (Desktop & Mobile)
-    document.querySelectorAll('[data-retry]').forEach((btn) => {
-      btn.addEventListener('click', () => retryOrder(btn.dataset.retry, btn));
-    });
-    document.querySelectorAll('[data-markpaid]').forEach((btn) => {
-      btn.addEventListener('click', () => markPaid(btn.dataset.markpaid, btn));
-    });
-    document.querySelectorAll('[data-markdelivered]').forEach((btn) => {
-      btn.addEventListener('click', () => markDelivered(btn.dataset.markdelivered, btn));
-    });
-    document.querySelectorAll('[data-copy-id]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const id = btn.dataset.copyId;
-        try {
-          await navigator.clipboard.writeText(id);
-          const orig = btn.innerHTML;
-          btn.innerHTML = '✓ Tersalin!';
-          setTimeout(() => (btn.innerHTML = orig), 1500);
-        } catch {}
-      });
-    });
+    // Bind event listeners
+    bindOrderEvents();
+
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="9" class="admin-empty">Gagal memuat data dari server.</td></tr>';
-    if (cardsContainer) cardsContainer.innerHTML = '<p class="admin-empty">Gagal memuat data.</p>';
+    if (!silent) {
+      tbody.innerHTML = '<tr><td colspan="9" class="admin-empty">Gagal memuat data dari server.</td></tr>';
+      if (cardsContainer) cardsContainer.innerHTML = '<p class="admin-empty">Gagal memuat data.</p>';
+    }
+  } finally {
+    isFetching = false;
   }
+}
+
+function bindOrderEvents() {
+  document.querySelectorAll('[data-retry]').forEach((btn) => {
+    btn.onclick = () => retryOrder(btn.dataset.retry, btn);
+  });
+  document.querySelectorAll('[data-markpaid]').forEach((btn) => {
+    btn.onclick = () => markPaid(btn.dataset.markpaid, btn);
+  });
+  document.querySelectorAll('[data-markdelivered]').forEach((btn) => {
+    btn.onclick = () => markDelivered(btn.dataset.markdelivered, btn);
+  });
+  document.querySelectorAll('[data-copy-id]').forEach((btn) => {
+    btn.onclick = async () => {
+      const id = btn.dataset.copyId;
+      try {
+        await navigator.clipboard.writeText(id);
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Tersalin!';
+        setTimeout(() => (btn.innerHTML = orig), 1500);
+      } catch {}
+    };
+  });
 }
 
 // DESKTOP ROW
@@ -233,6 +299,7 @@ function renderMobileCard(o) {
   `;
 }
 
+// Handler Tandai Lunas dengan live polling instan
 async function markPaid(orderId, btn) {
   if (!confirm(`Konfirmasi pembayaran Order ${orderId} sebagai LUNAS?\n\nSistem akan otomatis mengeksekusi pengiriman diamond via Digiflazz secara instan.`)) return;
 
@@ -244,12 +311,25 @@ async function markPaid(orderId, btn) {
     const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}/mark-paid`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || 'Gagal menandai lunas.');
+      showToast('❌ ' + (data.error || 'Gagal menandai lunas.'), 'error');
+    } else {
+      showToast('⚡ Pembayaran dikonfirmasi! Sedang memproses pengiriman Digiflazz…', 'success');
+      // Jalankan update instan tanpa refresh
+      await loadOrders(true);
+      
+      // Auto-poll intensif setiap 2.5 detik selama 20 detik untuk menangkap SN Digiflazz secara live
+      let pollCount = 0;
+      const pollTimer = setInterval(async () => {
+        pollCount++;
+        await loadOrders(true);
+        if (pollCount >= 8) clearInterval(pollTimer);
+      }, 2500);
     }
   } catch (err) {
-    alert('Gagal menandai lunas: ' + err.message);
+    showToast('❌ Gagal menandai lunas: ' + err.message, 'error');
+  } finally {
+    await loadOrders(true);
   }
-  loadOrders();
 }
 
 async function markDelivered(orderId, btn) {
@@ -267,14 +347,15 @@ async function markDelivered(orderId, btn) {
     });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || 'Gagal menandai terkirim.');
+      showToast('❌ ' + (data.error || 'Gagal menandai terkirim.'), 'error');
     } else {
-      alert(`Sukses! Pesanan ${orderId} ditandai TERKIRIM dengan SN: ${data.sn}`);
+      showToast(`✓ Sukses! Order ${orderId} ditandai TERKIRIM (SN: ${data.sn})`, 'success');
     }
   } catch (err) {
-    alert('Gagal menandai terkirim: ' + err.message);
+    showToast('❌ Gagal: ' + err.message, 'error');
+  } finally {
+    await loadOrders(true);
   }
-  loadOrders();
 }
 
 async function retryOrder(orderId, btn) {
@@ -287,14 +368,23 @@ async function retryOrder(orderId, btn) {
     const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}/retry`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
-      alert(data.error || 'Retry gagal.');
+      showToast('❌ ' + (data.error || 'Retry gagal.'), 'error');
     } else {
-      alert(`Sukses! Status: ${data.status} ${data.sn ? `(SN: ${data.sn})` : ''}`);
+      showToast(`⚡ Sukses kirim ulang! Status: ${data.status}`, 'success');
+      
+      // Auto-poll untuk update status real-time
+      let pollCount = 0;
+      const pollTimer = setInterval(async () => {
+        pollCount++;
+        await loadOrders(true);
+        if (pollCount >= 6) clearInterval(pollTimer);
+      }, 2500);
     }
   } catch (err) {
-    alert('Retry gagal: ' + err.message);
+    showToast('❌ Retry gagal: ' + err.message, 'error');
+  } finally {
+    await loadOrders(true);
   }
-  loadOrders();
 }
 
 // Quick Filter Pill Buttons
@@ -318,7 +408,7 @@ if (quickFilterPills) {
         statusFilter.value = '';
         deliveryFilter.value = 'gagal';
       }
-      loadOrders();
+      loadOrders(true);
     });
   });
 }
@@ -328,31 +418,33 @@ if (statPendingCard) {
   statPendingCard.addEventListener('click', () => {
     statusFilter.value = 'pending';
     deliveryFilter.value = '';
-    loadOrders();
+    loadOrders(true);
   });
 }
 if (statPaidCard) {
   statPaidCard.addEventListener('click', () => {
     statusFilter.value = 'paid';
     deliveryFilter.value = '';
-    loadOrders();
+    loadOrders(true);
   });
 }
 if (statFailedCard) {
   statFailedCard.addEventListener('click', () => {
     statusFilter.value = '';
     deliveryFilter.value = 'gagal';
-    loadOrders();
+    loadOrders(true);
   });
 }
 
-refreshBtn.addEventListener('click', loadOrders);
-searchInput.addEventListener('input', () => {
-  clearTimeout(window.searchTimer);
-  window.searchTimer = setTimeout(loadOrders, 400);
-});
-statusFilter.addEventListener('change', loadOrders);
-deliveryFilter.addEventListener('change', loadOrders);
+if (refreshBtn) refreshBtn.addEventListener('click', () => loadOrders(false));
+if (searchInput) {
+  searchInput.addEventListener('input', () => {
+    clearTimeout(window.searchTimer);
+    window.searchTimer = setTimeout(() => loadOrders(true), 400);
+  });
+}
+if (statusFilter) statusFilter.addEventListener('change', () => loadOrders(true));
+if (deliveryFilter) deliveryFilter.addEventListener('change', () => loadOrders(true));
 
 // Load Server Outbound IP for Digiflazz Whitelist
 async function loadServerIp() {
@@ -384,5 +476,14 @@ async function loadServerIp() {
   }
 }
 
+// Load pertama kali
 loadServerIp();
-loadOrders();
+loadOrders(false);
+
+// AUTO-POLLING REAL-TIME (Tiap 4 detik background polling tanpa kedip)
+setInterval(() => {
+  // Hanya polling jika tab sedang aktif / dibuka admin
+  if (!document.hidden) {
+    loadOrders(true);
+  }
+}, 4000);
