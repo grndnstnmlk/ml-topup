@@ -40,5 +40,5 @@
 ---
 
 ## 5. Pengujian & Keamanan
-- Gunakan Playwright dengan browser engine Firefox (`const { firefox } = require('playwright')`) untuk pengujian alur E2E dan screenshot scripts.
+- Gunakan Puppeteer / Node test runner untuk pengujian otomatis jika diperlukan. (Playwright dilarang/dihapus).
 - Jangan pernah hardcode secret keys di frontend atau file repositori publik.
