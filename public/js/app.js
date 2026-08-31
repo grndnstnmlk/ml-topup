@@ -540,7 +540,8 @@
   }
 
   function updatePayButtonState() {
-    payButton.disabled = !selectedProductId;
+    // Tombol tetap interaktif agar dapat memberikan panduan langsung jika ada step yang terlewat
+    if (payButton) payButton.disabled = false;
   }
 
   /* ==========================================================================
@@ -829,7 +830,6 @@
   async function loadProducts() {
     productGrid.innerHTML = '<p class="loading-text">Memuat paket produk…</p>';
     selectedProductId = null;
-    payButton.disabled = true;
     sumItemName.textContent = '—';
     sumItemPrice.textContent = 'Rp0';
     payLabel.textContent = 'Pesan Sekarang';
