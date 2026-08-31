@@ -1,20 +1,5 @@
 const db = require('./db');
 
-// Kategori: 'diamond' (paket reguler), 'first_topup' (bonus 2x, sekali per akun baru),
-// 'weekly_pass' (Weekly Diamond Pass, kelipatan)
-// digiflazz_sku: kode produk (buyer_sku_code) di akun Digiflazz kamu, dipakai untuk
-// pengiriman diamond otomatis. Kosongkan (null) kalau belum ada SKU-nya.
-// game: 'mobile-legends' (default), 'free-fire', 'pubg-mobile', dst — dipakai frontend
-// untuk menampilkan tab game & field ID yang sesuai (lihat GAME_CONFIG di public/js/app.js).
-//
-// Cara nambah game baru (mis. Free Fire):
-// 1. Jalankan `node scripts/get-digiflazz-products.js "free fire"` untuk ambil daftar
-//    buyer_sku_code + harga asli dari akun Digiflazz kamu (JANGAN dikira-kira sendiri).
-// 2. Tambahkan produknya di array `products` di bawah, dengan `game: 'free-fire'` dan
-//    `sku:` diisi buyer_sku_code asli dari hasil langkah 1.
-// 3. Tambahkan entri game-nya juga di GAME_CONFIG (public/js/app.js) supaya tab & field
-//    ID-nya muncul di frontend.
-// 4. jalankan `npm run seed` (atau set FORCE_RESEED=true di Railway lalu redeploy).
 const products = [
   // ---- Paket Diamond Reguler & Promo (Khusus Katalog AR Gaming Shop) ----
   { name: '10 (9+1) Diamonds',      diamonds: 10,   bonus: 1,    price: 3176,    original_price: 3500,   sku: 'ml10' },
@@ -52,71 +37,68 @@ const products = [
   { name: '5x Weekly Diamond Pass', diamonds: 0, bonus: 0, price: 157500, original_price: 162500, category: 'weekly_pass', sku: 'mlweek5' },
 ];
 
-const insertStmt = db.prepare(`
-  INSERT INTO products (name, diamonds, bonus, price, is_popular, sort_order, category, original_price, digiflazz_sku, game)
-  VALUES (@name, @diamonds, @bonus, @price, @popular, @sort, @category, @original_price, @sku, @game)
-`);
+async function seed() {
+  await db.init();
 
-const updateById = db.prepare(`
-  UPDATE products
-  SET name = @name, diamonds = @diamonds, bonus = @bonus, price = @price,
-      is_popular = @popular, sort_order = @sort, category = @category,
-      original_price = @original_price, digiflazz_sku = @sku, game = @game
-  WHERE id = @id
-`);
+  for (let i = 0; i < products.length; i++) {
+    const p = products[i];
+    const payload = [
+      p.name,
+      p.diamonds,
+      p.bonus || 0,
+      p.price,
+      p.popular ? 1 : 0,
+      i,
+      p.category || 'diamond',
+      p.original_price || null,
+      p.sku || null,
+      p.game || 'mobile-legends',
+    ];
 
-const findBySku = db.prepare('SELECT id FROM products WHERE digiflazz_sku = ?');
-// Fallback: produk lama (dari sebelum kolom digiflazz_sku ada) tidak punya SKU
-// sama sekali, jadi dicari berdasarkan nama supaya baris lama itu di-UPDATE
-// (termasuk backfill SKU-nya), bukan malah bikin baris baru yang duplikat.
-const findByName = db.prepare('SELECT id FROM products WHERE name = ? AND digiflazz_sku IS NULL');
-
-// Upsert: update produk yang sudah ada (dicocokkan lewat SKU, atau lewat nama
-// kalau SKU-nya belum ke-set), insert kalau benar-benar belum ada sama sekali.
-// SENGAJA TIDAK menghapus produk lama — kalau ada order yang sudah pernah
-// dibuat, product_id itu terikat foreign key dan menghapusnya akan gagal
-// (SQLITE_CONSTRAINT_FOREIGNKEY), atau kalaupun dipaksa, riwayat order lama
-// jadi rusak (product_id-nya jadi menunjuk ke baris yang sudah tidak ada).
-const seedAll = db.transaction((items) => {
-  items.forEach((p, i) => {
-    const payload = {
-      name: p.name,
-      diamonds: p.diamonds,
-      bonus: p.bonus || 0,
-      price: p.price,
-      popular: p.popular ? 1 : 0,
-      sort: i,
-      category: p.category || 'diamond',
-      original_price: p.original_price || null,
-      sku: p.sku || null,
-      game: p.game || 'mobile-legends',
-    };
-
-    const existing = (p.sku && findBySku.get(p.sku)) || findByName.get(p.name);
-    if (existing) {
-      updateById.run({ ...payload, id: existing.id });
-    } else {
-      insertStmt.run(payload);
+    let existing = null;
+    if (p.sku) {
+      existing = await db.get('SELECT id FROM products WHERE digiflazz_sku = ?', [p.sku]);
     }
-  });
-});
+    if (!existing) {
+      existing = await db.get('SELECT id FROM products WHERE name = ? AND digiflazz_sku IS NULL', [p.name]);
+    }
 
-seedAll(products);
-
-// Bersih-bersih: hapus produk yang sudah tidak ada di katalog seed saat ini
-// HANYA jika produk tersebut belum pernah dipakai oleh order manapun.
-const skusInSeed = products.map((p) => p.sku).filter(Boolean);
-if (skusInSeed.length > 0) {
-  const placeholders = skusInSeed.map(() => '?').join(',');
-  const cleanupOld = db.prepare(`
-    DELETE FROM products
-    WHERE (digiflazz_sku NOT IN (${placeholders}) OR digiflazz_sku IS NULL)
-      AND id NOT IN (SELECT DISTINCT product_id FROM orders)
-  `);
-  const removedOld = cleanupOld.run(...skusInSeed);
-  if (removedOld.changes > 0) {
-    console.log(`Membersihkan ${removedOld.changes} produk lama yang tidak ada di katalog saat ini.`);
+    if (existing) {
+      await db.run(
+        `UPDATE products 
+         SET name = ?, diamonds = ?, bonus = ?, price = ?, is_popular = ?, sort_order = ?, category = ?, original_price = ?, digiflazz_sku = ?, game = ? 
+         WHERE id = ?`,
+        [...payload, existing.id]
+      );
+    } else {
+      await db.run(
+        `INSERT INTO products (name, diamonds, bonus, price, is_popular, sort_order, category, original_price, digiflazz_sku, game) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        payload
+      );
+    }
   }
+
+  const skusInSeed = products.map((p) => p.sku).filter(Boolean);
+  if (skusInSeed.length > 0) {
+    const placeholders = skusInSeed.map(() => '?').join(',');
+    const removedOld = await db.run(
+      `DELETE FROM products WHERE (digiflazz_sku NOT IN (${placeholders}) OR digiflazz_sku IS NULL) AND id NOT IN (SELECT DISTINCT product_id FROM orders)`,
+      skusInSeed
+    );
+    if (removedOld.changes > 0) {
+      console.log(`Membersihkan ${removedOld.changes} produk lama yang tidak ada di katalog.`);
+    }
+  }
+
+  console.log(`Seed selesai: ${products.length} produk aktif diperiksa (update/insert).`);
 }
 
-console.log(`Seed selesai: ${products.length} produk aktif diperiksa (update/insert).`);
+if (require.main === module) {
+  seed().catch((err) => {
+    console.error('Error saat seed:', err);
+    process.exit(1);
+  });
+}
+
+module.exports = { seed, products };

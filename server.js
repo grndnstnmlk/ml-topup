@@ -49,14 +49,24 @@ const orderLimiter = rateLimit({
 });
 
 // Auto-seed produk kalau tabel masih kosong, ATAU kalau FORCE_RESEED=true diset
-const count = db.prepare('SELECT COUNT(*) AS c FROM products').get().c;
-if (count === 0) {
-  console.log('Database kosong, menjalankan seed produk otomatis...');
-  require('./db-seed');
-} else if (process.env.FORCE_RESEED === 'true') {
-  console.log('FORCE_RESEED=true terdeteksi, menjalankan ulang seed produk...');
-  require('./db-seed');
-}
+(async () => {
+  try {
+    await db.init();
+    const countRow = await db.get('SELECT COUNT(*) AS c FROM products');
+    const count = countRow ? Number(countRow.c) : 0;
+    if (count === 0) {
+      console.log('Database kosong, menjalankan seed produk otomatis...');
+      const { seed } = require('./db-seed');
+      await seed();
+    } else if (process.env.FORCE_RESEED === 'true') {
+      console.log('FORCE_RESEED=true terdeteksi, menjalankan ulang seed produk...');
+      const { seed } = require('./db-seed');
+      await seed();
+    }
+  } catch (err) {
+    console.error('Error saat inisialisasi / auto-seed database:', err.message);
+  }
+})();
 
 // Endpoint konfigurasi publik untuk frontend (sinkron otomatis dengan .env)
 app.get('/api/config', (req, res) => {

@@ -4,10 +4,7 @@ const router = express.Router();
 const db = require('../db');
 const { notifyCustomer } = require('../utils/notify');
 
-// POST /api/digiflazz-webhook - dipanggil otomatis oleh Digiflazz saat status
-// transaksi topup berubah (sukses/gagal). Daftarkan URL ini di dashboard
-// Digiflazz: Pengaturan Koneksi > API > Edit Koneksi API > Webhook > Payload URL
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   const secret = process.env.DIGIFLAZZ_WEBHOOK_SECRET;
   const signatureHeader = req.headers['x-hub-signature'];
   const eventHeader = req.headers['x-digiflazz-event'];
@@ -39,21 +36,21 @@ router.post('/', (req, res) => {
 
   console.log(`[digiflazz-webhook] Order ${ref_id}: status=${status} rc=${rc} sn=${sn || '-'}`);
 
-  // ref_id yang kita kirim saat topup = order_id kita sendiri (atau dengan suffix -Rxxxx saat retry)
   const baseOrderId = ref_id ? ref_id.replace(/-R\d+$/, '') : ref_id;
-  const order = db.prepare('SELECT * FROM orders WHERE order_id = ? OR order_id = ?').get(ref_id, baseOrderId);
+  const order = await db.get('SELECT * FROM orders WHERE order_id = ? OR order_id = ?', [ref_id, baseOrderId]);
 
   if (!order) {
-    console.warn(`[digiflazz-webhook] Order ${ref_id} (base: ${baseOrderId}) tidak ditemukan di database kita.`);
-    return res.status(200).send('OK'); // tetap 200 biar Digiflazz tidak retry terus
+    console.warn(`[digiflazz-webhook] Order ${ref_id} (base: ${baseOrderId}) tidak ditemukan di database.`);
+    return res.status(200).send('OK');
   }
 
   const deliveryStatus = status === 'Sukses' ? 'terkirim' : status === 'Gagal' ? 'gagal' : 'diproses';
 
-  db.prepare(
+  await db.run(
     `UPDATE orders SET delivery_status = ?, delivery_sn = ?, delivery_message = ?, updated_at = CURRENT_TIMESTAMP
-     WHERE order_id = ?`
-  ).run(deliveryStatus, sn || null, message || null, order.order_id);
+     WHERE order_id = ?`,
+    [deliveryStatus, sn || null, message || null, order.order_id]
+  );
 
   if (deliveryStatus === 'terkirim' && order.contact) {
     notifyCustomer(order.contact, {

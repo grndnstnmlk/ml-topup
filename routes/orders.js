@@ -5,14 +5,7 @@ const { nanoid } = require('nanoid');
 const db = require('../db');
 const { notifyCustomer } = require('../utils/notify');
 
-// Game yang butuh Zone/Server ID selain User ID (mis. Mobile Legends).
-// Game lain (Free Fire, PUBG Mobile, dst) cukup 1 ID saja.
 const GAMES_REQUIRING_ZONE = ['mobile-legends'];
-
-// PAYMENT_METHOD=qris_manual -> bypass Midtrans sepenuhnya, tampilkan QRIS statis
-// (punya sendiri, mis. DANA Bisnis) dan pembayaran dikonfirmasi manual lewat
-// tombol "Tandai Lunas" di admin dashboard. Dipakai selagi akun Midtrans belum
-// di-acc. Ganti balik ke 'midtrans' (atau hapus variabelnya) begitu sudah aktif.
 const PAYMENT_METHOD = process.env.PAYMENT_METHOD || 'midtrans';
 
 const snap = new midtransClient.Snap({
@@ -39,9 +32,7 @@ router.post('/', async (req, res) => {
       });
     }
 
-    const product = db
-      .prepare('SELECT * FROM products WHERE id = ?')
-      .get(product_id);
+    const product = await db.get('SELECT * FROM products WHERE id = ?', [product_id]);
 
     if (!product) {
       return res.status(404).json({ error: 'Produk tidak ditemukan' });
@@ -51,17 +42,15 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Zone ID wajib diisi untuk game ini.' });
     }
 
-    // Bonus First Top Up cuma sekali per akun (game_user_id + game_zone_id) —
-    // dicek dari order yang sudah 'paid', bukan yang masih pending/gagal.
+    // Bonus First Top Up cuma sekali per akun
     if (product.category === 'first_topup') {
-      const priorFirstTopup = db
-        .prepare(
-          `SELECT orders.id FROM orders
-           JOIN products ON products.id = orders.product_id
-           WHERE orders.game_user_id = ? AND orders.game_zone_id = ?
-             AND products.category = 'first_topup' AND orders.status = 'paid'`
-        )
-        .get(game_user_id, game_zone_id || '');
+      const priorFirstTopup = await db.get(
+        `SELECT orders.id FROM orders
+         JOIN products ON products.id = orders.product_id
+         WHERE orders.game_user_id = ? AND orders.game_zone_id = ?
+           AND products.category = 'first_topup' AND orders.status = 'paid'`,
+        [game_user_id, game_zone_id || '']
+      );
 
       if (priorFirstTopup) {
         return res.status(400).json({
@@ -78,11 +67,10 @@ router.post('/', async (req, res) => {
     }
 
     const orderId = `MLTOP-${Date.now()}-${nanoid(6).toUpperCase()}`;
-
     const trackingUrl = `${process.env.APP_BASE_URL || 'https://jagestore.shop'}/status.html?order_id=${orderId}`;
     const formattedPrice = 'Rp' + Number(product.price).toLocaleString('id-ID');
 
-    // Kirim notifikasi tagihan order baru (asinkron, tidak memblokir response)
+    // Kirim notifikasi tagihan order baru (asinkron)
     notifyCustomer(contact, {
       subject: `Tagihan Pesanan ${orderId} — JAGESTORE`,
       message: `*Halo Gamers!* 👋\n\nPesanan top up kamu di *JAGESTORE* sudah dibuat:\n📦 *Paket:* ${product.name}\n🎮 *Akun:* ${game_user_id}${game_zone_id ? ` (${game_zone_id})` : ''}\n💰 *Total Tagihan:* ${formattedPrice}\n🧾 *Order ID:* \`${orderId}\`\n\n🔗 *Lacak Pesanan / Bayar:*\n${trackingUrl}\n\n_Diamond akan otomatis terkirim < 60 detik setelah pembayaran terverifikasi._ ⚡`,
@@ -90,18 +78,20 @@ router.post('/', async (req, res) => {
     }).catch((e) => console.error('[orders] Gagal kirim notifikasi order baru:', e.message));
 
     if (PAYMENT_METHOD === 'qris_manual') {
-      db.prepare(
+      await db.run(
         `INSERT INTO orders (order_id, product_id, game_user_id, game_zone_id, contact, price, status, payment_type)
-         VALUES (?, ?, ?, ?, ?, ?, 'pending', 'qris-manual')`
-      ).run(orderId, product.id, game_user_id, game_zone_id || '', contact, product.price);
+         VALUES (?, ?, ?, ?, ?, ?, 'pending', 'qris-manual')`,
+        [orderId, product.id, game_user_id, game_zone_id || '', contact, product.price]
+      );
 
       return res.json({ order_id: orderId, manual_qris: true });
     }
 
-    db.prepare(
+    await db.run(
       `INSERT INTO orders (order_id, product_id, game_user_id, game_zone_id, contact, price, status)
-       VALUES (?, ?, ?, ?, ?, ?, 'pending')`
-    ).run(orderId, product.id, game_user_id, game_zone_id || '', contact, product.price);
+       VALUES (?, ?, ?, ?, ?, ?, 'pending')`,
+      [orderId, product.id, game_user_id, game_zone_id || '', contact, product.price]
+    );
 
     // Buat transaksi Midtrans Snap
     const parameter = {
@@ -140,17 +130,21 @@ router.post('/', async (req, res) => {
 });
 
 // GET /api/orders/:order_id - cek status order
-router.get('/:order_id', (req, res) => {
-  const order = db
-    .prepare(
+router.get('/:order_id', async (req, res) => {
+  try {
+    const order = await db.get(
       `SELECT orders.*, products.name AS product_name, products.diamonds, products.bonus
        FROM orders JOIN products ON products.id = orders.product_id
-       WHERE order_id = ?`
-    )
-    .get(req.params.order_id);
+       WHERE order_id = ?`,
+      [req.params.order_id]
+    );
 
-  if (!order) return res.status(404).json({ error: 'Order tidak ditemukan' });
-  res.json(order);
+    if (!order) return res.status(404).json({ error: 'Order tidak ditemukan' });
+    res.json(order);
+  } catch (err) {
+    console.error('Gagal get order status:', err.message);
+    res.status(500).json({ error: 'Gagal mengambil data pesanan' });
+  }
 });
 
 module.exports = router;

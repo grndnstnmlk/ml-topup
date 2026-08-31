@@ -11,9 +11,6 @@ const core = new midtransClient.CoreApi({
   clientKey: process.env.MIDTRANS_CLIENT_KEY,
 });
 
-// POST /api/webhook/midtrans - dipanggil otomatis oleh Midtrans saat status
-// pembayaran berubah. Daftarkan URL ini di dashboard Midtrans:
-// Settings > Configuration > Payment Notification URL
 router.post('/midtrans', async (req, res) => {
   try {
     const notification = await core.transaction.notification(req.body);
@@ -40,19 +37,19 @@ router.post('/midtrans', async (req, res) => {
       status = 'pending';
     }
 
-    db.prepare(
+    await db.run(
       `UPDATE orders
        SET status = ?, midtrans_transaction_id = ?, payment_type = ?, updated_at = CURRENT_TIMESTAMP
-       WHERE order_id = ?`
-    ).run(status, transactionId, paymentType, orderId);
+       WHERE order_id = ?`,
+      [status, transactionId, paymentType, orderId]
+    );
 
-    const order = db
-      .prepare(
-        `SELECT orders.*, products.name AS product_name, products.digiflazz_sku
-         FROM orders JOIN products ON products.id = orders.product_id
-         WHERE order_id = ?`
-      )
-      .get(orderId);
+    const order = await db.get(
+      `SELECT orders.*, products.name AS product_name, products.digiflazz_sku
+       FROM orders JOIN products ON products.id = orders.product_id
+       WHERE order_id = ?`,
+      [orderId]
+    );
 
     if (status === 'failed' && order && order.contact) {
       await notifyCustomer(order.contact, {
@@ -62,8 +59,6 @@ router.post('/midtrans', async (req, res) => {
       });
     }
 
-    // fulfillPaidOrder mengurus notifikasi "pembayaran berhasil" + kirim diamond
-    // (fungsi yang sama dipakai tombol "Tandai Lunas" manual di admin dashboard).
     if (status === 'paid' && order) {
       await fulfillPaidOrder(orderId);
     }
