@@ -2,14 +2,25 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// DB_PATH bisa diarahkan ke folder persistent volume (mis. Railway) lewat
-// environment variable. Kalau tidak diset, pakai folder project seperti biasa.
-const dbPath = process.env.DB_PATH || path.join(__dirname, 'data.sqlite');
+// Tentukan lokasi file database SQLite
+let targetDbPath = process.env.DB_PATH || path.join(__dirname, 'data.sqlite');
 
-// Pastikan foldernya ada dulu sebelum SQLite mencoba buka filenya
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+try {
+  fs.mkdirSync(path.dirname(targetDbPath), { recursive: true });
+} catch (err) {
+  console.warn(`[DB] Gagal membuat direktori ${targetDbPath} (${err.message}), fallback ke direktori project.`);
+  targetDbPath = path.join(__dirname, 'data.sqlite');
+}
 
-const db = new Database(dbPath);
+let db;
+try {
+  db = new Database(targetDbPath);
+} catch (err) {
+  console.warn(`[DB] Gagal membuka ${targetDbPath} (${err.message}), fallback ke ./data.sqlite.`);
+  targetDbPath = path.join(__dirname, 'data.sqlite');
+  db = new Database(targetDbPath);
+}
+
 db.pragma('journal_mode = WAL');
 
 db.exec(`
