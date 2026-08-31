@@ -63,6 +63,8 @@ const orderLimiter = rateLimit({
       const { seed } = require('./db-seed');
       await seed();
     }
+    // Jalankan cleanup pending order basi setelah tabel dipastikan ada
+    await deleteStalePendingOrders();
   } catch (err) {
     console.error('Error saat inisialisasi / auto-seed database:', err.message);
   }
@@ -93,10 +95,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-// Hapus order 'pending' yang sudah lewat 3 hari (ditinggal pembeli) — jalan
-// sekali saat startup, lalu diulang tiap 6 jam selama server hidup.
-deleteStalePendingOrders();
-setInterval(deleteStalePendingOrders, 6 * 60 * 60 * 1000);
+// Ulangi cleanup tiap 6 jam selama server hidup
+setInterval(() => {
+  deleteStalePendingOrders().catch(() => {});
+}, 6 * 60 * 60 * 1000);
 
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
