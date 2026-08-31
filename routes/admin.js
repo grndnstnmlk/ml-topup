@@ -46,6 +46,20 @@ function requireAdminAuth(req, res, next) {
 
 router.use(requireAdminAuth);
 
+// GET /api/admin/my-ip - cek IP keluar (Outbound/Egress IP) server Railway untuk Whitelist Digiflazz
+router.get('/my-ip', async (req, res) => {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4000);
+    const response = await fetch('https://api.ipify.org?format=json', { signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await response.json();
+    res.json({ ip: data.ip });
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal mendeteksi IP server: ' + err.message });
+  }
+});
+
 // GET /api/admin/orders?status=paid&q=MLTOP-xxx - daftar order terbaru
 router.get('/orders', (req, res) => {
   const { status, delivery_status, q } = req.query;

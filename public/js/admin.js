@@ -354,4 +354,35 @@ searchInput.addEventListener('input', () => {
 statusFilter.addEventListener('change', loadOrders);
 deliveryFilter.addEventListener('change', loadOrders);
 
+// Load Server Outbound IP for Digiflazz Whitelist
+async function loadServerIp() {
+  const ipText = document.getElementById('server-ip-text');
+  const ipBadge = document.getElementById('server-ip-badge');
+  if (!ipText) return;
+
+  try {
+    const res = await fetch('/api/admin/my-ip');
+    const data = await res.json();
+    if (data && data.ip) {
+      ipText.textContent = data.ip;
+      if (ipBadge) {
+        ipBadge.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(data.ip);
+            ipText.textContent = '✓ Tersalin!';
+            setTimeout(() => (ipText.textContent = data.ip), 1500);
+          } catch {
+            prompt('Salin IP server berikut untuk Whitelist Digiflazz:', data.ip);
+          }
+        });
+      }
+    } else {
+      ipText.textContent = 'Gagal';
+    }
+  } catch {
+    ipText.textContent = 'Offline';
+  }
+}
+
+loadServerIp();
 loadOrders();
