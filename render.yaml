@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: jagestore-topup
+    env: node
+    plan: free
+    region: singapore # singapore / oregon / frankfurt (singapore paling cepat untuk user Indo)
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20.x
+      - key: PAYMENT_METHOD
+        value: qris_manual
+      - key: APP_BASE_URL
+        sync: false
+      - key: ADMIN_USER
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: DIGIFLAZZ_USERNAME
+        sync: false
+      - key: DIGIFLAZZ_DEV_KEY
+        sync: false
+      - key: DIGIFLAZZ_PROD_KEY
+        sync: false
+      - key: DIGIFLAZZ_WEBHOOK_SECRET
+        sync: false
+      - key: DIGIFLAZZ_MODE
+        value: development
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM
+        value: JAGESTORE <onboarding@resend.dev>
+      - key: MIDTRANS_SERVER_KEY
+        sync: false
+      - key: MIDTRANS_CLIENT_KEY
+        sync: false
+      - key: MIDTRANS_IS_PRODUCTION
+        value: false

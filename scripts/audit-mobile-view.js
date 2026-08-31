@@ -1,4 +1,4 @@
-const { chromium, devices } = require('playwright');
+const { firefox, devices } = require('playwright');
 const express = require('express');
 const path = require('path');
 
@@ -26,7 +26,7 @@ const path = require('path');
 
   const port = 3588;
   const server = app.listen(port, async () => {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await firefox.launch({ headless: true });
     
     // Test on iPhone 14 profile
     const iPhone = devices['iPhone 14'];

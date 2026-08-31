@@ -1,11 +1,11 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
 (async () => {
   console.log('🚀 Starting Playwright Debug on https://jagestore.shop ...');
   
-  const browser = await chromium.launch({
+  const browser = await firefox.launch({
     headless: true
   });
   

@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const express = require('express');
 const path = require('path');
 
@@ -25,7 +25,7 @@ const path = require('path');
   });
 
   const server = app.listen(3457, async () => {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await firefox.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 
     // 1. Check status.html

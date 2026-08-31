@@ -1,4 +1,4 @@
-const { chromium, devices } = require('playwright');
+const { firefox, devices } = require('playwright');
 const express = require('express');
 const path = require('path');
 
@@ -11,7 +11,7 @@ const path = require('path');
 
   const port = 3599;
   const server = app.listen(port, async () => {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await firefox.launch({ headless: true });
     const iPhone = devices['iPhone 14'];
     const page = await browser.newPage({ ...iPhone });
     await page.goto(`http://localhost:${port}`);

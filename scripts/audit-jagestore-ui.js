@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
@@ -10,7 +10,7 @@ const fs = require('fs');
     fs.mkdirSync(artifactDir, { recursive: true });
   }
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await firefox.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1366, height: 850 },
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'

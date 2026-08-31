@@ -40,5 +40,5 @@
 ---
 
 ## 5. Pengujian & Keamanan
-- Gunakan Playwright (`scripts/test-checkout-flow.js`, dsb.) untuk pengujian alur E2E.
+- Gunakan Playwright dengan browser engine Firefox (`const { firefox } = require('playwright')`) untuk pengujian alur E2E dan screenshot scripts.
 - Jangan pernah hardcode secret keys di frontend atau file repositori publik.

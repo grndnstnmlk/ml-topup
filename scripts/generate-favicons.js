@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
@@ -22,7 +22,7 @@ const fs = require('fs');
     </html>
   `;
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await firefox.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 512, height: 512 }, deviceScaleFactor: 2 });
   const page = await context.newPage();
   await page.setContent(html);

@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -34,7 +34,7 @@ const fs = require('fs');
     console.log(`Server listening on http://localhost:${port}`);
     const artifactDir = 'C:\\Users\\USER\\.gemini\\antigravity-ide\\brain\\d153c2a4-83c8-4e41-87a1-761f9f419be1';
 
-    const browser = await chromium.launch({ headless: true });
+    const browser = await firefox.launch({ headless: true });
     
     // 1. Desktop Test
     const contextDesktop = await browser.newContext({ viewport: { width: 1280, height: 850 } });

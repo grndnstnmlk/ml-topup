@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const express = require('express');
 const path = require('path');
 
@@ -20,7 +20,7 @@ const path = require('path');
 
   const server = app.listen(3456, async () => {
     console.log('Local test server running on port 3456');
-    const browser = await chromium.launch({ headless: true });
+    const browser = await firefox.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
     const page = await context.newPage();
 

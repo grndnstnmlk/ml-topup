@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -34,7 +34,7 @@ const fs = require('fs');
     console.log(`🚀 Mock server online at http://localhost:${port}`);
     const artifactDir = 'C:\\Users\\USER\\.gemini\\antigravity-ide\\brain\\ae2f2c81-f588-408b-bb01-13e45de295be';
 
-    const browser = await chromium.launch({ headless: true });
+    const browser = await firefox.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1280, height: 950 } });
     const page = await context.newPage();
 

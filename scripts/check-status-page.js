@@ -1,7 +1,7 @@
-const { chromium } = require('playwright');
+const { firefox } = require('playwright');
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await firefox.launch({ headless: true });
   const page = await browser.newPage();
 
   console.log('🧪 Testing status.html page with an active order ...');
