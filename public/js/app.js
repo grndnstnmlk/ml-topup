@@ -727,8 +727,8 @@
     }
     if (isEventSpecial) {
       badges.push('<span class="badge badge-event">🎯 EVENT 250</span>');
-    } else if (isPopular || isPass) {
-      badges.push('<span class="badge badge-popular">🔥 POPULER</span>');
+    } else if (isPopular) {
+      badges.push('<span class="badge badge-popular">⚡ POPULER</span>');
     }
 
     return `
