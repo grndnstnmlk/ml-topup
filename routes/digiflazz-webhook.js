@@ -9,17 +9,20 @@ const { notifyCustomer } = require('../utils/notify');
 // Digiflazz: Pengaturan Koneksi > API > Edit Koneksi API > Webhook > Payload URL
 router.post('/', (req, res) => {
   const secret = process.env.DIGIFLAZZ_WEBHOOK_SECRET;
-  const signatureHeader = req.headers['x-hub-signature']; // format: "sha1=xxxxx"
+  const signatureHeader = req.headers['x-hub-signature'];
+  const eventHeader = req.headers['x-digiflazz-event'];
 
   if (secret) {
     if (!signatureHeader || !req.rawBody) {
+      console.warn('[digiflazz-webhook] Ditolak: Signature header atau rawBody tidak ditemukan.');
       return res.status(403).send('Signature tidak ada');
     }
 
-    const expected =
-      'sha1=' + crypto.createHmac('sha1', secret).update(req.rawBody).digest('hex');
+    const hash = crypto.createHmac('sha1', secret).update(req.rawBody).digest('hex');
+    const validWithPrefix = `sha1=${hash}`;
+    const validWithoutPrefix = hash;
 
-    if (signatureHeader !== expected) {
+    if (signatureHeader !== validWithPrefix && signatureHeader !== validWithoutPrefix) {
       console.error('[digiflazz-webhook] Signature tidak cocok, request ditolak.');
       return res.status(403).send('Signature tidak valid');
     }
