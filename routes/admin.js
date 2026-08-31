@@ -145,4 +145,65 @@ router.post('/orders/:order_id/mark-paid', async (req, res) => {
   res.json({ ok: true });
 });
 
+// POST /api/admin/orders/:order_id/mark-delivered - konfirmasi pengiriman manual + input SN resmi
+router.post('/orders/:order_id/mark-delivered', async (req, res) => {
+  const orderId = req.params.order_id;
+  const { sn, note } = req.body;
+
+  const order = db
+    .prepare(
+      `SELECT orders.*, products.name AS product_name
+       FROM orders JOIN products ON products.id = orders.product_id
+       WHERE order_id = ?`
+    )
+    .get(orderId);
+
+  if (!order) return res.status(404).json({ error: 'Order tidak ditemukan' });
+
+  const finalSn = (sn && sn.trim()) ? sn.trim() : `MANUAL-${Date.now()}`;
+  const finalMsg = (note && note.trim()) ? note.trim() : 'Pesanan berhasil dikirim manual oleh Admin';
+
+  db.prepare(
+    `UPDATE orders 
+     SET status = 'paid', 
+         delivery_status = 'terkirim', 
+         delivery_sn = ?, 
+         delivery_message = ?, 
+         updated_at = CURRENT_TIMESTAMP
+     WHERE order_id = ?`
+  ).run(finalSn, finalMsg, orderId);
+
+  if (order.contact) {
+    notifyCustomer(order.contact, {
+      subject: `⚡ Diamond Berhasil Masuk — ${orderId}`,
+      message: `*TOP UP BERHASIL!* ⚡💎\n\nDiamond sudah berhasil masuk langsung ke akun kamu:\n🎮 *Akun:* ${order.game_user_id}${order.game_zone_id ? ` (${order.game_zone_id})` : ''}\n📦 *Item:* ${order.product_name}\n🧾 *Order ID:* \`${orderId}\`\n🔑 *No Seri (SN):* \`${finalSn}\`\n\nTerima kasih telah top up di *JAGESTORE*! Selamat bermain! 🏆✨\n\n🌐 https://jagestore.shop/`,
+      html: `<p>Top Up Berhasil!</p><p>Diamond untuk Order <b>${orderId}</b> (${order.product_name}) sudah masuk ke akun <b>${order.game_user_id} (${order.game_zone_id})</b>.</p><p><b>No Seri (SN):</b> ${finalSn}</p><p>Selamat bermain!</p>`,
+    }).catch((e) => console.error('[admin:mark-delivered] Gagal kirim notifikasi:', e.message));
+  }
+
+  res.json({ ok: true, order_id: orderId, delivery_status: 'terkirim', sn: finalSn });
+});
+
+// POST /api/admin/orders/:order_id/update-status - ubah status order secara menyeluruh
+router.post('/orders/:order_id/update-status', (req, res) => {
+  const orderId = req.params.order_id;
+  const { status, delivery_status, delivery_sn, delivery_message } = req.body;
+
+  const order = db.prepare('SELECT * FROM orders WHERE order_id = ?').get(orderId);
+  if (!order) return res.status(404).json({ error: 'Order tidak ditemukan' });
+
+  const newStatus = status || order.status;
+  const newDeliveryStatus = delivery_status || order.delivery_status;
+  const newSn = delivery_sn !== undefined ? delivery_sn : order.delivery_sn;
+  const newMsg = delivery_message !== undefined ? delivery_message : order.delivery_message;
+
+  db.prepare(
+    `UPDATE orders 
+     SET status = ?, delivery_status = ?, delivery_sn = ?, delivery_message = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE order_id = ?`
+  ).run(newStatus, newDeliveryStatus, newSn, newMsg, orderId);
+
+  res.json({ ok: true, order_id: orderId });
+});
+
 module.exports = { router, requireAdminAuth };

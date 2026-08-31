@@ -169,6 +169,21 @@
           </div>
         ` : ''}
 
+        <!-- PENDING ADMIN MANUAL REVIEW (IF DELIVERY GAGAL / PENDING) -->
+        ${data.delivery_status === 'gagal' ? `
+          <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.35); border-radius:12px; padding:14px 16px; margin: 16px 0;">
+            <div style="font-size:0.85rem; font-weight:700; color:#f87171; margin-bottom:4px;">
+              ⚠️ Pengiriman Sedang Ditindaklanjuti Admin
+            </div>
+            <p style="font-size:0.8rem; color:#cbd5e1; margin:0 0 10px; line-height:1.5;">
+              Pembayaran Anda sudah aman 100% dan terverifikasi. Tim kami sedang menyelesaikan pengiriman diamond ke akun Anda.
+            </p>
+            <a class="status-wa-btn" target="_blank" rel="noopener" href="${waLink(data.order_id, `Halo admin, pesanan saya ${data.order_id} (${data.product_name}) butuh bantuan pengiriman diamond.`)}">
+              💬 Hubungi Admin via WhatsApp
+            </a>
+          </div>
+        ` : ''}
+
         <!-- QRIS MANUAL SECTION (IF PENDING) -->
         ${isPending && data.payment_type === 'qris-manual' ? `
           <div class="qris-manual-box">

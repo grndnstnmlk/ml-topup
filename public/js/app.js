@@ -540,7 +540,7 @@
   }
 
   function updatePayButtonState() {
-    payButton.disabled = !selectedProductId || !idIsValid;
+    payButton.disabled = !selectedProductId;
   }
 
   /* ==========================================================================
@@ -549,7 +549,7 @@
   function showIdCheck(state, text, details = {}) {
     idCheckBox.hidden = false;
     idCheckBox.className = `id-check ${state}`;
-    idIsValid = state !== 'not-found';
+    idIsValid = true;
     updatePayButtonState();
 
     if (state === 'found') {
@@ -589,6 +589,8 @@
           </div>
         </div>
       `;
+    } else if (state === 'not-found') {
+      idCheckBox.innerHTML = `<span>⚠️ ${text}</span>`;
     } else {
       idCheckBox.textContent = text;
     }
@@ -633,14 +635,14 @@
           game_zone_id: zoneId || undefined,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
 
-      if (data.valid && data.username) {
+      if (data && data.valid && data.username) {
         showIdCheck('found', `✓ Nickname: ${data.username}`, data);
-      } else if (data.unavailable) {
+      } else if (data && data.unavailable) {
         hideIdCheck();
       } else {
-        showIdCheck('not-found', '✕ ID tidak ditemukan. Periksa kembali User ID & Zone ID.');
+        showIdCheck('not-found', 'Nickname tidak terdeteksi otomatis. Pastikan User ID & Server ID sudah benar.');
       }
     } catch (err) {
       hideIdCheck();
@@ -1041,10 +1043,8 @@
     if (cfg.needsZone && !game_zone_id) {
       return showError('Zone / Server ID wajib diisi.', zoneIdInput);
     }
-    if (!idIsValid) {
-      return showError('ID akun tidak ditemukan. Periksa kembali User ID & Server ID.', idCheckBox.hidden ? userIdInput : idCheckBox);
-    }
-    if (!contact || !contact.includes('@')) {
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!contact || !emailPattern.test(contact)) {
       return showError('Alamat email wajib diisi dengan benar (contoh: nama@email.com).', document.getElementById('contact'));
     }
 

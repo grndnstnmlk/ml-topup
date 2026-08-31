@@ -38,11 +38,14 @@ router.post('/', async (req, res) => {
     clearTimeout(timeout);
 
     if (!response.ok) {
-      // Jika status HTTP 4xx/5xx (misal ID tidak ditemukan atau service sedang gangguan)
+      // Jika status HTTP 4xx/5xx dari server upstream (misal rate limit atau API sedang gangguan)
+      if (response.status >= 500 || response.status === 429 || response.status === 403) {
+        return res.json({ valid: false, unavailable: true });
+      }
       return res.json({ valid: false, message: 'ID tidak ditemukan' });
     }
 
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
 
     if (data && data.success && data.name) {
       return res.json({

@@ -110,6 +110,9 @@ async function loadOrders() {
     document.querySelectorAll('[data-markpaid]').forEach((btn) => {
       btn.addEventListener('click', () => markPaid(btn.dataset.markpaid, btn));
     });
+    document.querySelectorAll('[data-markdelivered]').forEach((btn) => {
+      btn.addEventListener('click', () => markDelivered(btn.dataset.markdelivered, btn));
+    });
     document.querySelectorAll('[data-copy-id]').forEach((btn) => {
       btn.addEventListener('click', async () => {
         const id = btn.dataset.copyId;
@@ -131,6 +134,7 @@ async function loadOrders() {
 function renderRow(o) {
   const canRetry = o.status === 'paid' && o.delivery_status !== 'terkirim' && o.digiflazz_sku;
   const canMarkPaid = o.status === 'pending';
+  const canMarkDelivered = o.delivery_status !== 'terkirim';
 
   return `
     <tr>
@@ -152,7 +156,8 @@ function renderRow(o) {
       <td class="mono" style="font-size:0.75rem; color:var(--text-muted);">${new Date(o.created_at).toLocaleString('id-ID')}</td>
       <td>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          ${canMarkPaid ? `<button type="button" class="admin-btn-markpaid" data-markpaid="${escapeHtml(o.order_id)}">⚡ Tandai Lunas</button>` : ''}
+          ${canMarkPaid ? `<button type="button" class="admin-btn-markpaid" data-markpaid="${escapeHtml(o.order_id)}" title="Tandai lunas & kirim otomatis">⚡ Lunas & Kirim</button>` : ''}
+          ${canMarkDelivered ? `<button type="button" class="admin-btn-markdelivered" data-markdelivered="${escapeHtml(o.order_id)}" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34d399; font-size:0.75rem; padding:4px 8px; border-radius:6px; cursor:pointer; font-weight:600;" title="Input SN & Tandai Terkirim Manual">✓ Input SN</button>` : ''}
           ${canRetry ? `<button type="button" class="admin-btn-retry" data-retry="${escapeHtml(o.order_id)}">🔄 Retry</button>` : ''}
           <a href="/status.html?order_id=${encodeURIComponent(o.order_id)}" target="_blank" class="admin-btn-view" title="Buka invoice publik">👁️</a>
         </div>
@@ -165,6 +170,7 @@ function renderRow(o) {
 function renderMobileCard(o) {
   const canRetry = o.status === 'paid' && o.delivery_status !== 'terkirim' && o.digiflazz_sku;
   const canMarkPaid = o.status === 'pending';
+  const canMarkDelivered = o.delivery_status !== 'terkirim';
 
   return `
     <div class="admin-order-card">
@@ -206,7 +212,12 @@ function renderMobileCard(o) {
       <div class="admin-card-actions">
         ${canMarkPaid ? `
           <button type="button" class="admin-btn-markpaid full-width" data-markpaid="${escapeHtml(o.order_id)}">
-            ⚡ Konfirmasi Lunas &amp; Kirim Diamond
+            ⚡ Konfirmasi Lunas &amp; Kirim Otomatis
+          </button>
+        ` : ''}
+        ${canMarkDelivered ? `
+          <button type="button" class="admin-btn-markdelivered full-width" data-markdelivered="${escapeHtml(o.order_id)}" style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.4); color:#34d399; padding:8px; border-radius:8px; font-weight:700; cursor:pointer; margin-top:4px;">
+            ✓ Input SN &amp; Tandai Terkirim Manual
           </button>
         ` : ''}
         ${canRetry ? `
@@ -237,6 +248,31 @@ async function markPaid(orderId, btn) {
     }
   } catch (err) {
     alert('Gagal menandai lunas: ' + err.message);
+  }
+  loadOrders();
+}
+
+async function markDelivered(orderId, btn) {
+  const sn = prompt(`Masukkan Nomor Seri (SN) bukti pengiriman resmi untuk Order ${orderId}:\n\n(Kosongkan jika ingin generate kode otomatis)`);
+  if (sn === null) return;
+
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Menyimpan…';
+
+  try {
+    const res = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}/mark-delivered`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sn: sn.trim() || undefined }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || 'Gagal menandai terkirim.');
+    } else {
+      alert(`Sukses! Pesanan ${orderId} ditandai TERKIRIM dengan SN: ${data.sn}`);
+    }
+  } catch (err) {
+    alert('Gagal menandai terkirim: ' + err.message);
   }
   loadOrders();
 }
